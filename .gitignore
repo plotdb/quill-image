@@ -4,3 +4,4 @@ node_modules
 secret.*
 *.key
 spec
+web/static/assets/lib
