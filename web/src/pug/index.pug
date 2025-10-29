@@ -2,11 +2,16 @@ doctype html
 html
   head
     +css([
+      {name: "bootstrap", path: "dist/css/bootstrap.min.css"},
+      {name: "@loadingio/bootstrap.ext"},
       {name: "quill", path: "dist/quill.core.css"},
       {name: "quill", path: "dist/quill.snow.css"}
     ])
   body
+    .w-1024.rwd.mx-auto
+      p put content here
     +script([
-      {name: "quill", path: "dist/quill.js"}
+      {name: "quill", path: "dist/quill.js"},
+      {name: "@plotdb/quill-image"}
     ])
     script(type="module"): include:lsc index.ls
