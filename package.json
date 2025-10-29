@@ -1,5 +1,5 @@
 {
-  "name": "quill-image",
+  "name": "@plotdb/quill-image",
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
@@ -26,5 +26,26 @@
     "proxise": "^1.0.1",
     "quill": "^2.0.3",
     "uglify-js": "^3.19.3"
+  },
+  "frontendDependencies": {
+    "root": "web/static/assets/lib",
+    "modules": [
+      "@loadingio/bootstrap.ext",
+      "@loadingio/debounce.js",
+      "@plotdb/block",
+      "@plotdb/csscope",
+      "@plotdb/rescope",
+      "@plotdb/semver",
+      "@zbryikt/template",
+      "bootstrap",
+      "fedep",
+      "ldcover",
+      "ldiconfont",
+      "ldview",
+      "livescript",
+      "proxise",
+      "quill",
+      "uglify-js"
+    ]
   }
 }
