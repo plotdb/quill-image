@@ -1,0 +1,7 @@
+#!/usr/bin/env bash
+rm -rf dist
+mkdir -p dist
+echo "transpile index.ls to index.js ..."
+./node_modules/.bin/lsc -cpb src/index.ls > dist/index.js
+echo "minifying index.js ..."
+./node_modules/.bin/uglifyjs dist/index.js -m -c > dist/index.min.js

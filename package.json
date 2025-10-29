@@ -1,0 +1,30 @@
+{
+  "name": "quill-image",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@loadingio/bootstrap.ext": "^0.0.12",
+    "@loadingio/debounce.js": "^1.0.1",
+    "@plotdb/block": "^5.5.4",
+    "@plotdb/csscope": "^5.0.4",
+    "@plotdb/rescope": "^5.0.15",
+    "@plotdb/semver": "^0.0.3",
+    "@zbryikt/template": "^2.4.1",
+    "bootstrap": "^4.6.1",
+    "fedep": "^1.5.0",
+    "ldcover": "^3.5.6",
+    "ldiconfont": "^0.2.8",
+    "ldview": "^1.5.1",
+    "livescript": "^1.6.0",
+    "proxise": "^1.0.1",
+    "quill": "^2.0.3",
+    "uglify-js": "^3.19.3"
+  }
+}
