@@ -24,9 +24,9 @@ quill-image-tools.prototype = Object.create(Object.prototype) <<<
     
     setup-styles: ->
         # Create styles for overlay and handles
-        return if document.query-selector('#quill-image-tools-styles')
+        return if document.querySelector('#quill-image-tools-styles')
         
-        style = document.create-element('style')
+        style = document.createElement('style')
         style.id = 'quill-image-tools-styles'
         style.innerHTML = '''
             .quill-image-overlay {
@@ -78,58 +78,58 @@ quill-image-tools.prototype = Object.create(Object.prototype) <<<
                 pointer-events: none;
             }
         '''
-        document.head.append-child(style)
+        document.head.appendChild(style)
     
     setup-events: ->
         # Use document-level events to handle mouse move/up anywhere
         # This prevents losing drag state when cursor moves outside editor
-        @root.add-event-listener('click', (e) ~> @on-editor-click.apply(@, [e]))
-        document.add-event-listener('mousedown', (e) ~> @on-mouse-down.apply(@, [e]))
-        document.add-event-listener('mousemove', (e) ~> @on-mouse-move.apply(@, [e]))
-        document.add-event-listener('mouseup', (e) ~> @on-mouse-up.apply(@, [e]))
+        @root.addEventListener('click', (e) ~> @on-editor-click(e))
+        document.addEventListener('mousedown', (e) ~> @on-mouse-down(e))
+        document.addEventListener('mousemove', (e) ~> @on-mouse-move(e))
+        document.addEventListener('mouseup', (e) ~> @on-mouse-up(e))
         
         # Handle escape key to deselect
-        document.add-event-listener('keydown', (e) ~> @on-keydown.apply(@, [e]))
+        document.addEventListener('keydown', (e) ~> @on-keydown(e))
     
     register-module: ->
         # Register with Quill as a module for proper integration
         if @quill.register?
             @quill.register('modules/imageTools', quill-image-tools)
     
-    on-editor-click: (e) ~>
+    on-editor-click: (e) ->
         target = e.target
         
         # Check if clicked on an image
-        if target.tag-name is 'IMG'
-            e.prevent-default!
+        if target.tagName is 'IMG'
+            e.preventDefault!
             @select-image(target)
         else
             # Click outside image, deselect
             @deselect-image!
     
-    on-keydown: (e) ~>
+    on-keydown: (e) ->
         if e.key is 'Escape'
             @deselect-image!
     
-    on-mouse-down: (e) ~>
+    on-mouse-down: (e) ->
         return unless @overlay?
         
         # Check if mousedown on a resize handle
-        if e.target.class-list.contains('quill-image-handle')
-            e.prevent-default!
+        if e.target.classList.contains('quill-image-handle')
+            e.preventDefault!
             @start-resize(e)
         else if e.target is @selected-image
             # Start drag for reordering
-            e.prevent-default!
+            e.preventDefault!
             @start-drag(e)
     
-    on-mouse-move: (e) ~>
+    on-mouse-move: (e) ->
         if @drag-state?.type is 'resize'
             @handle-resize(e)
         else if @drag-state?.type is 'drag'
             @handle-drag(e)
     
-    on-mouse-up: (e) ~>
+    on-mouse-up: (e) ->
         if @drag-state?
             @finish-drag(e)
     
@@ -152,20 +152,20 @@ quill-image-tools.prototype = Object.create(Object.prototype) <<<
         return unless @selected-image?
         
         # Create overlay container
-        @overlay = document.create-element('div')
-        @overlay.class-name = 'quill-image-overlay'
+        @overlay = document.createElement('div')
+        @overlay.className = 'quill-image-overlay'
         
         # Create resize handles
         corners = ['nw', 'ne', 'sw', 'se']
         for corner in corners
-            handle = document.create-element('div')
-            handle.class-name = "quill-image-handle #{corner}"
+            handle = document.createElement('div')
+            handle.className = "quill-image-handle #{corner}"
             handle.dataset.corner = corner
-            @overlay.append-child(handle)
+            @overlay.appendChild(handle)
             @resize-handles[corner] = handle
         
         # Add to document
-        document.body.append-child(@overlay)
+        document.body.appendChild(@overlay)
     
     remove-overlay: ->
         return unless @overlay?
@@ -177,7 +177,7 @@ quill-image-tools.prototype = Object.create(Object.prototype) <<<
     position-overlay: ->
         return unless @overlay? and @selected-image?
         
-        rect = @selected-image.get-bounding-client-rect!
+        rect = @selected-image.getBoundingClientRect!
         
         @overlay.style <<<
             left: "#{rect.left}px"
@@ -187,13 +187,13 @@ quill-image-tools.prototype = Object.create(Object.prototype) <<<
     
     start-resize: (e) ->
         corner = e.target.dataset.corner
-        rect = @selected-image.get-bounding-client-rect!
+        rect = @selected-image.getBoundingClientRect!
         
         @drag-state =
             type: 'resize'
             corner: corner
-            start-x: e.client-x
-            start-y: e.client-y
+            start-x: e.clientX
+            start-y: e.clientY
             start-width: rect.width
             start-height: rect.height
             aspect-ratio: rect.width / rect.height
@@ -203,8 +203,8 @@ quill-image-tools.prototype = Object.create(Object.prototype) <<<
         
         {corner, start-x, start-y, start-width, start-height, aspect-ratio} = @drag-state
         
-        dx = e.client-x - start-x
-        dy = e.client-y - start-y
+        dx = e.clientX - start-x
+        dy = e.clientY - start-y
         
         new-width = start-width
         new-height = start-height
@@ -238,8 +238,8 @@ quill-image-tools.prototype = Object.create(Object.prototype) <<<
         # TODO: Implement drag-to-reorder functionality
         @drag-state =
             type: 'drag'
-            start-x: e.client-x
-            start-y: e.client-y
+            start-x: e.clientX
+            start-y: e.clientY
     
     handle-drag: (e) ->
         # TODO: Implement drag preview and drop target detection
@@ -259,17 +259,17 @@ quill-image-tools.prototype = Object.create(Object.prototype) <<<
         # Apply final size through Quill Delta operations
         return unless @selected-image?
         
-        new-width = parse-int(@selected-image.style.width)
-        new-height = parse-int(@selected-image.style.height)
+        new-width = parseInt(@selected-image.style.width)
+        new-height = parseInt(@selected-image.style.height)
         
         # Get image's position in Quill content
         blot = @quill.scroll.find(@selected-image)
         return unless blot?
         
-        index = @quill.get-index(blot)
+        index = @quill.getIndex(blot)
         
         # Update through Delta for proper undo/redo support
-        @quill.format-text(index, 1, {
+        @quill.formatText(index, 1, {
             width: "#{new-width}px"
             height: "#{new-height}px"
         })
