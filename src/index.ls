@@ -39,6 +39,7 @@ resizer = ->
       window.removeEventListener \mousemove, move-handler
       window.removeEventListener \mouseup, move-handler
       document.body.classList.toggle \quill-image-plus-select-suppress, false
+      if !@_.preview-pos => return
       n = @_.editor.container.querySelector("[key='#{@_.key}']")
       blot = Quill.find(n)
       index = @_.editor.get-index(blot)

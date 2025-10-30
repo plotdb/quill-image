@@ -49,6 +49,9 @@ resizer = function(){
       window.removeEventListener('mousemove', moveHandler);
       window.removeEventListener('mouseup', moveHandler);
       document.body.classList.toggle('quill-image-plus-select-suppress', false);
+      if (!this$._.previewPos) {
+        return;
+      }
       n = this$._.editor.container.querySelector("[key='" + this$._.key + "']");
       blot = Quill.find(n);
       index = this$._.editor.getIndex(blot);
