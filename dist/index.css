@@ -1,0 +1,6 @@
+.quill-image-plus-resizer-dot,
+.quill-image-plus-resizer-bar {
+  width: 5px;
+  height: 5px;
+  background: #000;
+}

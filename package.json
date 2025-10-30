@@ -21,6 +21,7 @@
     "fedep": "^1.5.0",
     "ldcover": "^3.5.6",
     "ldiconfont": "^0.2.8",
+    "ldresize": "^0.0.4",
     "ldview": "^1.5.1",
     "livescript": "^1.6.0",
     "proxise": "^1.0.1",
@@ -42,6 +43,7 @@
       "fedep",
       "ldcover",
       "ldiconfont",
+      "ldresize",
       "ldview",
       "livescript",
       "proxise",
@@ -50,6 +52,7 @@
     ]
   },
   "devDependencies": {
-    "@loadingio/ldquery": "^3.0.6"
+    "@loadingio/ldquery": "^3.0.6",
+    "uglifycss": "^0.0.29"
   }
 }

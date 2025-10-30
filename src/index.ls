@@ -5,10 +5,33 @@ image-plus-blot.prototype = Object.create BlockEmbed.prototype
 image-plus-blot.prototype.constructor = image-plus-blot
 Object.setPrototypeOf image-plus-blot, BlockEmbed
 
+resizer = ->
+  @_ = dom: {}
+  @_.dom.base = document.createElement \div
+  @_.dom <<< Object.fromEntries <[n e s w]>.map (t) ~>
+    n = document.createElement \div
+    @_.dom.base.appendChild n
+    n.classList.add(
+      \quill-image-plus-resizer-bar,
+      "quill-image-plus-resizer-bar-#{if t in <[n s]> => 'horizontal' else 'vertical'}"
+    )
+    [t, n]
+
+  @_.dom <<< Object.fromEntries <[nw ne se sw]>.map (t) ~>
+    n = document.createElement \div
+    @_.dom.base.appendChild n
+    n.classList.add \quill-image-plus-resizer-dot
+    [t, n]
+  @
+
+resizer.prototype = Object.create(Object.prototype) <<<
+  init: ->
+
 image-plus-blot <<< BlockEmbed <<<
   blotName: 'image-plus'
   tagName: 'img'
   create: (v) ->
+    if !image-plus-blot.resizer => image-plus-blot.resizer = new resizer!
     node = BlockEmbed.create.call @, v
     node.setAttribute \src, v.src
     node.setAttribute \alt, v.alt or ''

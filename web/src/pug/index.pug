@@ -5,7 +5,8 @@ html
       {name: "bootstrap", path: "dist/css/bootstrap.min.css"},
       {name: "@loadingio/bootstrap.ext"},
       {name: "quill", path: "dist/quill.core.css"},
-      {name: "quill", path: "dist/quill.snow.css"}
+      {name: "quill", path: "dist/quill.snow.css"},
+      {name: "@plotdb/quill-image-plus"}
     ])
   body
     .w-1024.rwd.mx-auto.my-5
@@ -26,7 +27,8 @@ html
       {name: "@loadingio/debounce.js"},
       {name: "@loadingio/ldquery"},
       {name: "ldview"},
+      {name: "ldresize"},
       {name: "quill", path: "dist/quill.js"},
-      {name: "@plotdb/quill-image"}
+      {name: "@plotdb/quill-image-plus"}
     ])
     script(type="module"): include:lsc index.ls
