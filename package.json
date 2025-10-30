@@ -1,5 +1,5 @@
 {
-  "name": "@plotdb/quill-image",
+  "name": "@plotdb/quill-image-plus",
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
@@ -32,6 +32,7 @@
     "modules": [
       "@loadingio/bootstrap.ext",
       "@loadingio/debounce.js",
+      "@loadingio/ldquery",
       "@plotdb/block",
       "@plotdb/csscope",
       "@plotdb/rescope",
@@ -47,5 +48,8 @@
       "quill",
       "uglify-js"
     ]
+  },
+  "devDependencies": {
+    "@loadingio/ldquery": "^3.0.6"
   }
 }
