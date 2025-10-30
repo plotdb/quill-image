@@ -10,23 +10,22 @@ html
   body
     .w-1024.rwd.mx-auto.my-5
       h2.mb-4 Quill Image Tools Test
-      
-      .mb-3
-        button#insert-image.btn.btn-primary Insert Test Image
-        button#toggle-readonly.btn.btn-secondary.ml-2 Toggle Read-only
-      
-      #editor.border(style="min-height: 400px;")
+      div(ld="toolbar")
+        button.ql-bold
+        button.ql-italic
+        button.ql-underline
+        button.ql-image
+      .border(ld="editor",style="min-height: 400px;")
         p Welcome to the Quill Image Tools test page.
         p Click "Insert Test Image" to add an image, then try:
         ul
           li Click on the image to select it
           li Drag the corner handles to resize
           li Press Escape to deselect
-        
-      .mt-4
-        h5 Debug Info:
-        pre#debug-info
     +script([
+      {name: "@loadingio/debounce.js"},
+      {name: "@loadingio/ldquery"},
+      {name: "ldview"},
       {name: "quill", path: "dist/quill.js"},
       {name: "@plotdb/quill-image"}
     ])
