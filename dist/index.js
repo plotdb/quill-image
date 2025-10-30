@@ -149,13 +149,19 @@ resizer.prototype = (ref$ = Object.create(Object.prototype), ref$.dismissCaret =
   rbox = container.getBoundingClientRect();
   ref$ = [box.x - rbox.x, box.y - rbox.y], x = ref$[0], y = ref$[1];
   return ref$ = this._.dom.caret.style, ref$.left = x + "px", ref$.top = y + "px", ref$;
+}, ref$.unbind = function(){
+  return this._.dom.base.style.display = 'none';
 }, ref$.bind = function(arg$){
-  var node, key, evt, container, quill, rbox, box, ref$, x, y, width, height;
+  var node, key, evt, container, quill, rbox, box, ref$, x, y, width, height, this$ = this;
   node = arg$.node, key = arg$.key, evt = arg$.evt;
+  this._.dom.base.style.display = 'block';
   this._.key = key;
-  if (evt) {
+  if (evt && !this._.editor) {
     container = evt.target.closest('.ql-container');
     this._.editor = quill = Quill.find(evt.target.closest('.ql-editor').parentElement);
+    this._.editor.on('text-change', function(){
+      return this$.unbind();
+    });
   } else {
     quill = this._.editor;
     container = quill.container;
@@ -190,16 +196,14 @@ resizer.prototype = (ref$ = Object.create(Object.prototype), ref$.dismissCaret =
     ref$.height = height;
   }
   [['nw', x, y], ['ne', x + width - 8, y], ['se', x + width - 8, y + height - 8], ['sw', x, y + height - 8]].map(function(arg$){
-    var t, x, y;
+    var t, x, y, ref$;
     t = arg$[0], x = arg$[1], y = arg$[2];
-    return this$._.dom[t].style.transform = "translate(" + x + "px, " + y + "px)";
+    return ref$ = this$._.dom[t].style, ref$.transform = "translate(" + x + "px, " + y + "px)", ref$;
   });
   return [['n', x, y, width, 0], ['e', x + width - 3, y, 0, height], ['s', x, y + height - 3, width, 0], ['w', x, y, 0, height]].map(function(arg$){
-    var t, x, y, width, height;
+    var t, x, y, width, height, ref$;
     t = arg$[0], x = arg$[1], y = arg$[2], width = arg$[3], height = arg$[4];
-    this$._.dom[t].style.transform = "translate(" + x + "px, " + y + "px)";
-    this$._.dom[t].style.width = (width || 3) + "px";
-    return this$._.dom[t].style.height = (height || 3) + "px";
+    return ref$ = this$._.dom[t].style, ref$.transform = "translate(" + x + "px, " + y + "px)", ref$.width = (width || 3) + "px", ref$.height = (height || 3) + "px", ref$;
   });
 }, ref$);
 ref$ = import$(imagePlusBlot, Embed);
@@ -215,13 +219,21 @@ ref$.create = function(v){
   node.setAttribute('src', v.src);
   node.setAttribute('alt', v.alt || '');
   node.setAttribute('key', key = v.key || Math.random().toString(36).substring(2));
+  v.width = 200;
+  v.height = 300;
   if (v.width) {
     node.setAttribute('width', v.width);
   }
   if (v.height) {
     node.setAttribute('height', v.height);
   }
+  window.addEventListener('mouseup', function(){
+    return imagePlusBlot.resizer.unbind();
+  });
   node.setAttribute('draggable', false);
+  node.addEventListener('mouseup', function(evt){
+    return evt.stopPropagation();
+  });
   node.addEventListener('mousedown', function(evt){
     var moveHandler;
     imagePlusBlot.resizer.bind({
@@ -230,7 +242,7 @@ ref$.create = function(v){
       evt: evt
     });
     moveHandler = function(evt){
-      var position, quill, oldBlot, oldIndex, newBlot, newIndex, ref$, width, height, n, delta;
+      var position, box, pos2, quill, oldBlot, oldIndex, newBlot, newIndex, ref$, width, height, n, delta;
       if (evt.buttons) {
         return imagePlusBlot.resizer.caret({
           node: node,
@@ -242,12 +254,25 @@ ref$.create = function(v){
       if (!(position = document.caretPositionFromPoint(evt.clientX, evt.clientY))) {
         return;
       }
+      box = node.getBoundingClientRect();
+      pos2 = document.caretPositionFromPoint(box.x, box.y);
+      if (!pos2) {
+        return;
+      }
+      if (!node.closest('.ql-editor')) {
+        return;
+      }
+      if (pos2.offsetNode === position.offsetNode && pos2.offset === position.offset - 1) {
+        return;
+      }
       quill = Quill.find(node.closest('.ql-editor').parentElement);
       oldBlot = Quill.find(node);
       oldIndex = quill.getIndex(oldBlot);
       newBlot = Quill.find(position.offsetNode, true);
+      if (!newBlot) {
+        return;
+      }
       newIndex = quill.getIndex(newBlot) + position.offset;
-      console.log(oldBlot, node, oldBlot.formats());
       ref$ = oldBlot.formats(), width = ref$.width, height = ref$.height;
       if (position.offsetNode instanceof Element) {
         if ((n = position.offsetNode.childNodes[position.offset]) === node) {
@@ -256,9 +281,6 @@ ref$.create = function(v){
       }
       if (newIndex > oldIndex) {
         newIndex -= 1;
-      }
-      if (Math.abs(newIndex - oldIndex) < 2) {
-        return;
       }
       delta = new Delta().retain(oldIndex < newIndex ? oldIndex : newIndex);
       delta = oldIndex < newIndex
@@ -307,9 +329,9 @@ ref$.create = function(v){
   return node;
 };
 ref$.value = function(n){
-  return ['src', 'alt', 'width', 'height', 'key'].map(function(t){
+  return Object.fromEntries(['src', 'alt', 'width', 'height', 'key'].map(function(t){
     return [t, n.getAttribute(t)];
-  });
+  }));
 };
 ref$.formats = function(node){
   var formats;

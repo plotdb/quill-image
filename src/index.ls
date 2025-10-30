@@ -89,11 +89,14 @@ resizer.prototype = Object.create(Object.prototype) <<<
     rbox = container.getBoundingClientRect!
     [x, y] = [box.x - rbox.x, box.y - rbox.y]
     @_.dom.caret.style <<< left: "#{x}px", top: "#{y}px"
+  unbind: -> @_.dom.base.style.display = \none
   bind: ({node, key, evt}) ->
+    @_.dom.base.style.display = \block
     @_.key = key
-    if evt =>
+    if evt and !@_.editor =>
       container = evt.target.closest('.ql-container')
       @_.editor = quill = Quill.find evt.target.closest('.ql-editor').parentElement
+      @_.editor.on \text-change, ~> @unbind!
     else
       quill = @_.editor
       container = quill.container
@@ -111,16 +114,17 @@ resizer.prototype = Object.create(Object.prototype) <<<
       [\ne, x + width - 8, y]
       [\se, x + width - 8, y + height - 8]
       [\sw, x, y + height - 8]
-    ].map ([t, x, y]) ~> @_.dom[t].style.transform = "translate(#{x}px, #{y}px)"
+    ].map ([t, x, y]) ~> @_.dom[t].style <<< transform: "translate(#{x}px, #{y}px)"
     [
       [\n, x, y, width, 0]
       [\e, x + width - 3, y, 0, height]
       [\s, x, y + height - 3, width, 0]
       [\w, x, y, 0, height]
     ].map ([t, x, y, width, height]) ~>
-      @_.dom[t].style.transform = "translate(#{x}px, #{y}px)"
-      @_.dom[t].style.width = "#{width or 3}px"
-      @_.dom[t].style.height = "#{height or 3}px"
+      @_.dom[t].style <<<
+        transform: "translate(#{x}px, #{y}px)"
+        width: "#{width or 3}px"
+        height: "#{height or 3}px"
 
 image-plus-blot <<< Embed <<<
   blotName: 'image-plus'
@@ -131,27 +135,40 @@ image-plus-blot <<< Embed <<<
     node.setAttribute \src, v.src
     node.setAttribute \alt, (v.alt or '')
     node.setAttribute \key, key = (v.key or Math.random!toString(36)substring(2))
+    v <<< width: 200, height: 300
     if v.width => node.setAttribute \width, v.width
     if v.height => node.setAttribute \height, v.height
+    window.addEventListener \mouseup, -> image-plus-blot.resizer.unbind!
     node.setAttribute \draggable, false
+    node.addEventListener \mouseup, (evt) -> evt.stopPropagation!
     node.addEventListener \mousedown, (evt) ->
       image-plus-blot.resizer.bind {node, key, evt}
       move-handler = (evt) ~>
-        if evt.buttons => return image-plus-blot.resizer.caret {node, evt}
+        if evt.buttons =>
+          return image-plus-blot.resizer.caret {node, evt}
         window.removeEventListener \mousemove, move-handler
         window.removeEventListener \mouseup, move-handler
         if !(position = document.caretPositionFromPoint evt.clientX, evt.clientY) => return
+        box = node.getBoundingClientRect!
+        # current pos. used to prevent small movement which leads to strange behavior with quick click
+        pos2 = document.caretPositionFromPoint box.x, box.y
+        if !pos2 => return
+        # drag to some strange place: .ql-editor null
+        if !node.closest('.ql-editor') => return
+        # single click trigger something like moving after itself
+        if pos2.offsetNode == position.offsetNode and pos2.offset == position.offset - 1 => return
         quill = Quill.find node.closest('.ql-editor').parentElement
         old-blot = Quill.find node
         old-index = quill.getIndex old-blot
         new-blot = Quill.find position.offsetNode, true
+        # drag outside - no new-blot
+        if !new-blot => return
         new-index = quill.getIndex(new-blot) + position.offset
-        console.log old-blot, node, old-blot.formats!
         {width, height} = old-blot.formats!
         if position.offsetNode instanceof Element =>
           if (n = position.offsetNode.childNodes[position.offset]) == node => return
         if new-index > old-index => new-index -= 1
-        if Math.abs(new-index - old-index) < 2 => return
+        #if Math.abs(new-index - old-index) < 1 => return
         delta = new Delta!retain(old-index <? new-index)
         delta = if old-index < new-index => delta.delete(1)
         else delta.insert(
@@ -171,8 +188,7 @@ image-plus-blot <<< Embed <<<
       window.addEventListener \mouseup, move-handler
     if v.transient => node.onload = -> image-plus-blot.resizer.bind {node, key}
     return node
-  value: (n) -> <[src alt width height key]>.map (t) -> [t, n.getAttribute(t)]
-  formats: (node) ->
-    formats = Object.fromEntries <[width height]>.map (t) -> [t, node.getAttribute(t) or '']
+  value: (n) -> Object.fromEntries <[src alt width height key]>.map (t) -> [t, n.getAttribute(t)]
+  formats: (node) -> formats = Object.fromEntries <[width height]>.map (t) -> [t, node.getAttribute(t) or '']
 
 Quill.register image-plus-blot
