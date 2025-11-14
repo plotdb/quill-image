@@ -111,22 +111,26 @@ resizer.prototype = Object.create(Object.prototype) <<<
   repos: ({x, y, width, height, preview}) ->
     if !preview => @_.{}pos <<< {x, y, width, height}
     else @_.{}preview-pos <<< {x, y, width, height}
+    node-size = 8
+    bar-size = 1
+    width = Math.floor(width)
+    height = Math.floor(height)
     [
       [\nw, x, y]
-      [\ne, x + width - 8, y]
-      [\se, x + width - 8, y + height - 8]
-      [\sw, x, y + height - 8]
-    ].map ([t, x, y]) ~> @_.dom[t].style <<< transform: "translate(#{x}px, #{y}px)"
+      [\ne, x + width - node-size, y]
+      [\se, x + width - node-size, y + height - node-size]
+      [\sw, x, y + height - node-size]
+    ].map ([t, x, y]) ~> @_.dom[t].style <<< transform: "translate(#{Math.floor x}px, #{Math.floor y}px)"
     [
       [\n, x, y, width, 0]
-      [\e, x + width - 3, y, 0, height]
-      [\s, x, y + height - 3, width, 0]
+      [\e, x + width - bar-size, y, 0, height]
+      [\s, x, y + height - bar-size, width, 0]
       [\w, x, y, 0, height]
     ].map ([t, x, y, width, height]) ~>
       @_.dom[t].style <<<
-        transform: "translate(#{x}px, #{y}px)"
-        width: "#{width or 3}px"
-        height: "#{height or 3}px"
+        transform: "translate(#{Math.floor x}px, #{Math.floor y}px)"
+        width: "#{Math.floor width or bar-size}px"
+        height: "#{Math.floor height or bar-size}px"
 
 image-plus-blot <<< Embed <<<
   blotName: 'image-plus'
@@ -147,9 +151,12 @@ image-plus-blot <<< Embed <<<
       image-plus-blot.resizer.bind {node, key, evt}
       move-handler = (evt) ~>
         if evt.buttons =>
+          node._dragging = true
           return image-plus-blot.resizer.caret {node, evt}
         window.removeEventListener \mousemove, move-handler
         window.removeEventListener \mouseup, move-handler
+        if !node._dragging => return
+        node._dragging = false
         if !(position = document.caretPositionFromPoint evt.clientX, evt.clientY) => return
         box = node.getBoundingClientRect!
         # current pos. used to prevent small movement which leads to strange behavior with quick click
@@ -158,31 +165,34 @@ image-plus-blot <<< Embed <<<
         # drag to some strange place: .ql-editor null
         if !node.closest('.ql-editor') => return
         # single click trigger something like moving after itself
-        if pos2.offsetNode == position.offsetNode and pos2.offset == position.offset - 1 => return
+        #if pos2.offsetNode == position.offsetNode and pos2.offset == position.offset - 1 => return
         quill = Quill.find node.closest('.ql-editor').parentElement
         old-blot = Quill.find node
         old-index = quill.getIndex old-blot
-        new-blot = Quill.find position.offsetNode, true
+        get-blot = ({offsetNode: n, offset: idx}) ->
+          if n.childNodes?[idx] => [n,idx] = [n.childNodes[idx], 0]
+          blot = Quill.find n, true
+          index = if !blot => 0 else quill.get-index(blot) + idx
+          return {blot, index}
+        {blot: new-blot, index: new-index} = get-blot position
         # drag outside - no new-blot
         if !new-blot => return
-        new-index = quill.getIndex(new-blot) + position.offset
         {width, height} = old-blot.formats!
-        if position.offsetNode instanceof Element =>
-          if (n = position.offsetNode.childNodes[position.offset]) == node => return
         if new-index > old-index => new-index -= 1
+        if new-index == old-index => return
         #if Math.abs(new-index - old-index) < 1 => return
         delta = new Delta!retain(old-index <? new-index)
         delta = if old-index < new-index => delta.delete(1)
-        else delta.insert(
+        else if old-index > new-index => delta.insert(
           {'image-plus': node{src, alt, key, width, height} <<< {transient: true}},
           {width, height}
-        )
+        ) else delta
         delta = delta.retain(Math.abs(new-index - old-index))
         delta = if old-index > new-index => delta.delete(1)
-        else delta.insert(
+        else if old-index < new-index => delta.insert(
           {'image-plus': node{src, alt, key, width, height} <<< {transient: true}}
           {width, height}
-        )
+        ) else delta
         quill.updateContents delta
         image-plus-blot.resizer.dismiss-caret!
 

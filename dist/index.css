@@ -23,9 +23,19 @@
   left: 0;
   width: 8px;
   height: 8px;
-  border-radius: 1px;
-  background: #fff;
-  outline: 1px solid #000;
   z-index: 10;
   cursor: pointer;
+  border-radius: 1px;
+  box-sizing: border-box;
+  background: #0ff;
+}
+.quill-image-plus-resizer-dot:before,
+.quill-image-plus-resizer-bar:before {
+  content: " ";
+  display: block;
+  position: absolute;
+  top: -5px;
+  left: -5px;
+  width: calc(100% + 10px);
+  height: calc(100% + 10px);
 }

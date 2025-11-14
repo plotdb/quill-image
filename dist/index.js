@@ -187,7 +187,7 @@ resizer.prototype = (ref$ = Object.create(Object.prototype), ref$.dismissCaret =
     height: height
   });
 }, ref$.repos = function(arg$){
-  var x, y, width, height, preview, ref$, ref1$, this$ = this;
+  var x, y, width, height, preview, ref$, ref1$, nodeSize, barSize, this$ = this;
   x = arg$.x, y = arg$.y, width = arg$.width, height = arg$.height, preview = arg$.preview;
   if (!preview) {
     ref$ = (ref1$ = this._).pos || (ref1$.pos = {});
@@ -202,15 +202,19 @@ resizer.prototype = (ref$ = Object.create(Object.prototype), ref$.dismissCaret =
     ref$.width = width;
     ref$.height = height;
   }
-  [['nw', x, y], ['ne', x + width - 8, y], ['se', x + width - 8, y + height - 8], ['sw', x, y + height - 8]].map(function(arg$){
+  nodeSize = 8;
+  barSize = 1;
+  width = Math.floor(width);
+  height = Math.floor(height);
+  [['nw', x, y], ['ne', x + width - nodeSize, y], ['se', x + width - nodeSize, y + height - nodeSize], ['sw', x, y + height - nodeSize]].map(function(arg$){
     var t, x, y, ref$;
     t = arg$[0], x = arg$[1], y = arg$[2];
-    return ref$ = this$._.dom[t].style, ref$.transform = "translate(" + x + "px, " + y + "px)", ref$;
+    return ref$ = this$._.dom[t].style, ref$.transform = "translate(" + Math.floor(x) + "px, " + Math.floor(y) + "px)", ref$;
   });
-  return [['n', x, y, width, 0], ['e', x + width - 3, y, 0, height], ['s', x, y + height - 3, width, 0], ['w', x, y, 0, height]].map(function(arg$){
+  return [['n', x, y, width, 0], ['e', x + width - barSize, y, 0, height], ['s', x, y + height - barSize, width, 0], ['w', x, y, 0, height]].map(function(arg$){
     var t, x, y, width, height, ref$;
     t = arg$[0], x = arg$[1], y = arg$[2], width = arg$[3], height = arg$[4];
-    return ref$ = this$._.dom[t].style, ref$.transform = "translate(" + x + "px, " + y + "px)", ref$.width = (width || 3) + "px", ref$.height = (height || 3) + "px", ref$;
+    return ref$ = this$._.dom[t].style, ref$.transform = "translate(" + Math.floor(x) + "px, " + Math.floor(y) + "px)", ref$.width = (Math.floor(width) || barSize) + "px", ref$.height = (Math.floor(height) || barSize) + "px", ref$;
   });
 }, ref$);
 ref$ = import$(imagePlusBlot, Embed);
@@ -249,8 +253,9 @@ ref$.create = function(v){
       evt: evt
     });
     moveHandler = function(evt){
-      var position, box, pos2, quill, oldBlot, oldIndex, newBlot, newIndex, ref$, width, height, n, delta;
+      var position, box, pos2, quill, oldBlot, oldIndex, getBlot, ref$, newBlot, newIndex, width, height, delta;
       if (evt.buttons) {
+        node._dragging = true;
         return imagePlusBlot.resizer.caret({
           node: node,
           evt: evt
@@ -258,6 +263,10 @@ ref$.create = function(v){
       }
       window.removeEventListener('mousemove', moveHandler);
       window.removeEventListener('mouseup', moveHandler);
+      if (!node._dragging) {
+        return;
+      }
+      node._dragging = false;
       if (!(position = document.caretPositionFromPoint(evt.clientX, evt.clientY))) {
         return;
       }
@@ -269,30 +278,39 @@ ref$.create = function(v){
       if (!node.closest('.ql-editor')) {
         return;
       }
-      if (pos2.offsetNode === position.offsetNode && pos2.offset === position.offset - 1) {
-        return;
-      }
       quill = Quill.find(node.closest('.ql-editor').parentElement);
       oldBlot = Quill.find(node);
       oldIndex = quill.getIndex(oldBlot);
-      newBlot = Quill.find(position.offsetNode, true);
+      getBlot = function(arg$){
+        var n, idx, ref$, ref1$, blot, index;
+        n = arg$.offsetNode, idx = arg$.offset;
+        if ((ref$ = n.childNodes) != null && ref$[idx]) {
+          ref1$ = [n.childNodes[idx], 0], n = ref1$[0], idx = ref1$[1];
+        }
+        blot = Quill.find(n, true);
+        index = !blot
+          ? 0
+          : quill.getIndex(blot) + idx;
+        return {
+          blot: blot,
+          index: index
+        };
+      };
+      ref$ = getBlot(position), newBlot = ref$.blot, newIndex = ref$.index;
       if (!newBlot) {
         return;
       }
-      newIndex = quill.getIndex(newBlot) + position.offset;
       ref$ = oldBlot.formats(), width = ref$.width, height = ref$.height;
-      if (position.offsetNode instanceof Element) {
-        if ((n = position.offsetNode.childNodes[position.offset]) === node) {
-          return;
-        }
-      }
       if (newIndex > oldIndex) {
         newIndex -= 1;
+      }
+      if (newIndex === oldIndex) {
+        return;
       }
       delta = new Delta().retain(oldIndex < newIndex ? oldIndex : newIndex);
       delta = oldIndex < newIndex
         ? delta['delete'](1)
-        : delta.insert({
+        : oldIndex > newIndex ? delta.insert({
           'image-plus': (ref$ = {
             src: node.src,
             alt: node.alt,
@@ -303,11 +321,11 @@ ref$.create = function(v){
         }, {
           width: width,
           height: height
-        });
+        }) : delta;
       delta = delta.retain(Math.abs(newIndex - oldIndex));
       delta = oldIndex > newIndex
         ? delta['delete'](1)
-        : delta.insert({
+        : oldIndex < newIndex ? delta.insert({
           'image-plus': (ref$ = {
             src: node.src,
             alt: node.alt,
@@ -318,7 +336,7 @@ ref$.create = function(v){
         }, {
           width: width,
           height: height
-        });
+        }) : delta;
       quill.updateContents(delta);
       return imagePlusBlot.resizer.dismissCaret();
     };
