@@ -56,7 +56,8 @@ resizer = ->
     [w,h] = [@_.pos.width, @_.pos.height]
     if /n/.exec(dir) => dy = -dy
     if /w/.exec(dir) => dx = -dx
-    [dx, dy] = if Math.abs(dx) > Math.abs(dy) => [dx, dx * h/w] else [dy * w/h, dy]
+    if !@_.resize-based-axis => @_.resize-based-axis = if Math.abs(dx) > Math.abs(dy) => \x else \y
+    [dx, dy] = if @_.resize-based-axis == \x => [dx, dx * h/w] else [dy * w/h, dy]
     {x, y, width, height} = @_.pos
     if /n/.exec(dir) => [y, height] = [@_.pos.y - dy, @_.pos.height + dy]
     if /s/.exec(dir) => [y, height] = [@_.pos.y, @_.pos.height + dy]
@@ -69,7 +70,7 @@ resizer = ->
     dir = <[nw ne se sw n s w e]>.filter((t) ~> @_.dom[t] == evt.target).0
     if !dir => return
     @_.start = true
-    @_ <<< {x: evt.clientX, y: evt.clientY, dir}
+    @_ <<< {x: evt.clientX, y: evt.clientY, dir, resize-based-axis: null}
     document.body.classList.toggle \quill-image-plus-select-suppress, true
     window.addEventListener \mousemove, move-handler
     window.addEventListener \mouseup, move-handler

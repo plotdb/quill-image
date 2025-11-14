@@ -86,7 +86,10 @@ resizer = function(){
     if (/w/.exec(dir)) {
       dx = -dx;
     }
-    ref$ = Math.abs(dx) > Math.abs(dy)
+    if (!this$._.resizeBasedAxis) {
+      this$._.resizeBasedAxis = Math.abs(dx) > Math.abs(dy) ? 'x' : 'y';
+    }
+    ref$ = this$._.resizeBasedAxis === 'x'
       ? [dx, dx * h / w]
       : [dy * w / h, dy], dx = ref$[0], dy = ref$[1];
     ref$ = this$._.pos, x = ref$.x, y = ref$.y, width = ref$.width, height = ref$.height;
@@ -123,6 +126,7 @@ resizer = function(){
     ref$.x = evt.clientX;
     ref$.y = evt.clientY;
     ref$.dir = dir;
+    ref$.resizeBasedAxis = null;
     document.body.classList.toggle('quill-image-plus-select-suppress', true);
     window.addEventListener('mousemove', moveHandler);
     return window.addEventListener('mouseup', moveHandler);
