@@ -40,7 +40,7 @@ resizer = ->
       window.removeEventListener \mouseup, move-handler
       document.body.classList.toggle \quill-image-plus-select-suppress, false
       if !@_.preview-pos => return
-      n = @_.editor.container.querySelector("[key='#{@_.key}']")
+      n = @_.editor.container.querySelector("[data-qip-key='#{@_.key}']")
       blot = Quill.find(n)
       index = @_.editor.get-index(blot)
       @_.editor.formatText index, 1, @_.preview-pos{width, height}
@@ -137,15 +137,22 @@ resizer.prototype = Object.create(Object.prototype) <<<
 image-plus-blot <<< Embed <<<
   blotName: 'image-plus'
   tagName: 'img'
-  create: (v = {}) ->
+  create: (opt = {}) ->
     if !image-plus-blot.resizer => image-plus-blot.resizer = new resizer!
-    node = Embed.create.call @, v
-    node.setAttribute \src, v.src
-    node.setAttribute \alt, (v.alt or '')
-    node.setAttribute \key, key = (v.key or Math.random!toString(36)substring(2))
-    v <<< width: 200, height: 300
-    if v.width => node.setAttribute \width, v.width
-    if v.height => node.setAttribute \height, v.height
+    node = Embed.create.call @, opt
+    node.setAttribute \src, "data:image/gif;base64,R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs="
+    node.setAttribute \data-src, opt.src
+    node.style <<<
+      background: "url(#{opt.src})"
+      backgroundSize: \contain
+      backgroundColor: 'rgba(0,0,0,.8)'
+      backgroundPosition: 'center center'
+
+    node.setAttribute \alt, (opt.alt or '')
+    node.setAttribute \data-qip-key, key = (opt.key or "quill-image-plus-#{Math.random!toString(36)substring(2)}")
+    opt <<< width: 200, height: 300
+    if opt.width => node.setAttribute \width, opt.width
+    if opt.height => node.setAttribute \height, opt.height
     window.addEventListener \mouseup, -> image-plus-blot.resizer.unbind!
     node.setAttribute \draggable, false
     node.addEventListener \mouseup, (evt) -> evt.stopPropagation!
@@ -172,7 +179,7 @@ image-plus-blot <<< Embed <<<
         old-blot = Quill.find node
         old-index = quill.getIndex old-blot
         get-blot = ({offsetNode: n, offset: idx}) ->
-          if n.childNodes? => [n,idx] = [n.childNodes[idx <? (n.childNodes - 1)], 0]
+          if n.nodeName != \#text and n.childNodes? => [n,idx] = [n.childNodes[idx <? (n.childNodes - 1)], 0]
           blot = Quill.find n, true
           index = if !blot => 0 else quill.get-index(blot) + idx
           return {blot, index}
@@ -184,15 +191,20 @@ image-plus-blot <<< Embed <<<
         if new-index == old-index => return
         #if Math.abs(new-index - old-index) < 1 => return
         delta = new Delta!retain(old-index <? new-index)
+        # we don't use `node{src}` below because it will be the 1px gif.
         delta = if old-index < new-index => delta.delete(1)
         else if old-index > new-index => delta.insert(
-          {'image-plus': node{src, alt, key, width, height} <<< {transient: true}},
+          {'image-plus': node{alt, width, height} <<< { transient: true } <<< (
+            Object.fromEntries(<[src key]>.map (t) -> [t, node.getAttribute("data-#t")])
+          )},
           {width, height}
         ) else delta
         delta = delta.retain(Math.abs(new-index - old-index))
         delta = if old-index > new-index => delta.delete(1)
         else if old-index < new-index => delta.insert(
-          {'image-plus': node{src, alt, key, width, height} <<< {transient: true}}
+          {'image-plus': node{alt, width, height} <<< {transient: true } <<< (
+            Object.fromEntries(<[src key]>.map (t) -> [t, node.getAttribute("data-#t")])
+          )},
           {width, height}
         ) else delta
         quill.updateContents delta
@@ -200,9 +212,13 @@ image-plus-blot <<< Embed <<<
 
       window.addEventListener \mousemove, move-handler
       window.addEventListener \mouseup, move-handler
-    if v.transient => node.onload = -> image-plus-blot.resizer.bind {node, key}
+    if opt.transient => node.onload = -> image-plus-blot.resizer.bind {node, key}
     return node
-  value: (n) -> Object.fromEntries <[src alt width height key]>.map (t) -> [t, n.getAttribute(t)]
-  formats: (node) -> formats = Object.fromEntries <[width height]>.map (t) -> [t, node.getAttribute(t) or '']
+  value: (n) ->
+    Object.fromEntries(
+      <[src alt width height key]>
+        .map (t) -> [t, n.getAttribute({src: "data-src", key: "data-qip-key"}[t] or t)]
+    )
+  formats: (node) -> Object.fromEntries <[width height]>.map (t) -> [t, node.getAttribute(t) or '']
 
 Quill.register image-plus-blot

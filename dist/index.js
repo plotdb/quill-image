@@ -52,7 +52,7 @@ resizer = function(){
       if (!this$._.previewPos) {
         return;
       }
-      n = this$._.editor.container.querySelector("[key='" + this$._.key + "']");
+      n = this$._.editor.container.querySelector("[data-qip-key='" + this$._.key + "']");
       blot = Quill.find(n);
       index = this$._.editor.getIndex(blot);
       this$._.editor.formatText(index, 1, {
@@ -226,23 +226,29 @@ resizer.prototype = (ref$ = Object.create(Object.prototype), ref$.dismissCaret =
 ref$ = import$(imagePlusBlot, Embed);
 ref$.blotName = 'image-plus';
 ref$.tagName = 'img';
-ref$.create = function(v){
-  var node, key;
-  v == null && (v = {});
+ref$.create = function(opt){
+  var node, ref$, key;
+  opt == null && (opt = {});
   if (!imagePlusBlot.resizer) {
     imagePlusBlot.resizer = new resizer();
   }
-  node = Embed.create.call(this, v);
-  node.setAttribute('src', v.src);
-  node.setAttribute('alt', v.alt || '');
-  node.setAttribute('key', key = v.key || Math.random().toString(36).substring(2));
-  v.width = 200;
-  v.height = 300;
-  if (v.width) {
-    node.setAttribute('width', v.width);
+  node = Embed.create.call(this, opt);
+  node.setAttribute('src', "data:image/gif;base64,R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs=");
+  node.setAttribute('data-src', opt.src);
+  ref$ = node.style;
+  ref$.background = "url(" + opt.src + ")";
+  ref$.backgroundSize = 'contain';
+  ref$.backgroundColor = 'rgba(0,0,0,.8)';
+  ref$.backgroundPosition = 'center center';
+  node.setAttribute('alt', opt.alt || '');
+  node.setAttribute('data-qip-key', key = opt.key || "quill-image-plus-" + Math.random().toString(36).substring(2));
+  opt.width = 200;
+  opt.height = 300;
+  if (opt.width) {
+    node.setAttribute('width', opt.width);
   }
-  if (v.height) {
-    node.setAttribute('height', v.height);
+  if (opt.height) {
+    node.setAttribute('height', opt.height);
   }
   window.addEventListener('mouseup', function(){
     return imagePlusBlot.resizer.unbind();
@@ -290,7 +296,7 @@ ref$.create = function(v){
       getBlot = function(arg$){
         var n, idx, ref$, blot, index;
         n = arg$.offsetNode, idx = arg$.offset;
-        if (n.childNodes != null) {
+        if (n.nodeName !== '#text' && n.childNodes != null) {
           ref$ = [n.childNodes[idx < (ref$ = n.childNodes - 1) ? idx : ref$], 0], n = ref$[0], idx = ref$[1];
         }
         blot = Quill.find(n, true);
@@ -317,13 +323,13 @@ ref$.create = function(v){
       delta = oldIndex < newIndex
         ? delta['delete'](1)
         : oldIndex > newIndex ? delta.insert({
-          'image-plus': (ref$ = {
-            src: node.src,
+          'image-plus': import$((ref$ = {
             alt: node.alt,
-            key: node.key,
             width: node.width,
             height: node.height
-          }, ref$.transient = true, ref$)
+          }, ref$.transient = true, ref$), Object.fromEntries(['src', 'key'].map(function(t){
+            return [t, node.getAttribute("data-" + t)];
+          })))
         }, {
           width: width,
           height: height
@@ -332,13 +338,13 @@ ref$.create = function(v){
       delta = oldIndex > newIndex
         ? delta['delete'](1)
         : oldIndex < newIndex ? delta.insert({
-          'image-plus': (ref$ = {
-            src: node.src,
+          'image-plus': import$((ref$ = {
             alt: node.alt,
-            key: node.key,
             width: node.width,
             height: node.height
-          }, ref$.transient = true, ref$)
+          }, ref$.transient = true, ref$), Object.fromEntries(['src', 'key'].map(function(t){
+            return [t, node.getAttribute("data-" + t)];
+          })))
         }, {
           width: width,
           height: height
@@ -349,7 +355,7 @@ ref$.create = function(v){
     window.addEventListener('mousemove', moveHandler);
     return window.addEventListener('mouseup', moveHandler);
   });
-  if (v.transient) {
+  if (opt.transient) {
     node.onload = function(){
       return imagePlusBlot.resizer.bind({
         node: node,
@@ -361,12 +367,16 @@ ref$.create = function(v){
 };
 ref$.value = function(n){
   return Object.fromEntries(['src', 'alt', 'width', 'height', 'key'].map(function(t){
-    return [t, n.getAttribute(t)];
+    return [
+      t, n.getAttribute({
+        src: "data-src",
+        key: "data-qip-key"
+      }[t] || t)
+    ];
   }));
 };
 ref$.formats = function(node){
-  var formats;
-  return formats = Object.fromEntries(['width', 'height'].map(function(t){
+  return Object.fromEntries(['width', 'height'].map(function(t){
     return [t, node.getAttribute(t) || ''];
   }));
 };
