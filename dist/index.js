@@ -189,6 +189,12 @@ resizer.prototype = (ref$ = Object.create(Object.prototype), ref$.dismissCaret =
 }, ref$.repos = function(arg$){
   var x, y, width, height, preview, ref$, ref1$, nodeSize, barSize, this$ = this;
   x = arg$.x, y = arg$.y, width = arg$.width, height = arg$.height, preview = arg$.preview;
+  if (width < 0) {
+    ref$ = [x + width, -width], x = ref$[0], width = ref$[1];
+  }
+  if (height < 0) {
+    ref$ = [y + height, -height], y = ref$[0], height = ref$[1];
+  }
   if (!preview) {
     ref$ = (ref1$ = this._).pos || (ref1$.pos = {});
     ref$.x = x;
@@ -282,10 +288,10 @@ ref$.create = function(v){
       oldBlot = Quill.find(node);
       oldIndex = quill.getIndex(oldBlot);
       getBlot = function(arg$){
-        var n, idx, ref$, ref1$, blot, index;
+        var n, idx, ref$, blot, index;
         n = arg$.offsetNode, idx = arg$.offset;
-        if ((ref$ = n.childNodes) != null && ref$[idx]) {
-          ref1$ = [n.childNodes[idx], 0], n = ref1$[0], idx = ref1$[1];
+        if (n.childNodes != null) {
+          ref$ = [n.childNodes[idx < (ref$ = n.childNodes - 1) ? idx : ref$], 0], n = ref$[0], idx = ref$[1];
         }
         blot = Quill.find(n, true);
         index = !blot

@@ -109,6 +109,8 @@ resizer.prototype = Object.create(Object.prototype) <<<
     [x, y, width, height] = [box.x - rbox.x, box.y - rbox.y, box.width ,box.height]
     @repos {x, y, width, height}
   repos: ({x, y, width, height, preview}) ->
+    if width < 0 => [x,width] = [x + width, -width]
+    if height < 0 => [y,height] = [y + height, -height]
     if !preview => @_.{}pos <<< {x, y, width, height}
     else @_.{}preview-pos <<< {x, y, width, height}
     node-size = 8
@@ -170,7 +172,7 @@ image-plus-blot <<< Embed <<<
         old-blot = Quill.find node
         old-index = quill.getIndex old-blot
         get-blot = ({offsetNode: n, offset: idx}) ->
-          if n.childNodes?[idx] => [n,idx] = [n.childNodes[idx], 0]
+          if n.childNodes? => [n,idx] = [n.childNodes[idx <? (n.childNodes - 1)], 0]
           blot = Quill.find n, true
           index = if !blot => 0 else quill.get-index(blot) + idx
           return {blot, index}
