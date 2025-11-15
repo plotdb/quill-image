@@ -94,7 +94,7 @@ resizer = function(){
   this._.dom.button = n = document.createElement('div');
   this._.dom.base.appendChild(n);
   n.classList.add('quill-image-plus-button');
-  this._.dom.button.innerHTML = "<div data-action=\"src\"><svg xmlns=\"http://www.w3.org/2000/svg\" width=\"12px\" viewBox=\"0 0 1200 1200\"><path d=\"M1099.8 345.4v-.4a49.8 49.8 0 0 0-9.4-24.6c-.1 0-.2 0-.2-.2l-1.2-1.5-.4-.4-1.2-1.4-.4-.5a50 50 0 0 0-1.6-1.8l-300-300-1.8-1.6-.5-.4-1.4-1.2-.4-.4-1.5-1.2c-.1 0-.2 0-.3-.2l-1.8-1.2A49.7 49.7 0 0 0 755 .2h-.4A50.3 50.3 0 0 0 750 0H150a50 50 0 0 0-50 50v1100a50 50 0 0 0 50 50h900a50 50 0 0 0 50-50V350a49.7 49.7 0 0 0-.2-4.6zM800 170.7 929.3 300H800V170.7zM200 1100V100h500v250a50 50 0 0 0 50 50h250v700H200z\"/></svg></div>\n<div data-action=\"fit\"><svg xmlns=\"http://www.w3.org/2000/svg\" width=\"12px\" viewBox=\"0 0 1200 1200\"><path d=\"M1099.8 345.4v-.4a49.8 49.8 0 0 0-9.4-24.6c-.1 0-.2 0-.2-.2l-1.2-1.5-.4-.4-1.2-1.4-.4-.5a50 50 0 0 0-1.6-1.8l-300-300-1.8-1.6-.5-.4-1.4-1.2-.4-.4-1.5-1.2c-.1 0-.2 0-.3-.2l-1.8-1.2A49.7 49.7 0 0 0 755 .2h-.4A50.3 50.3 0 0 0 750 0H150a50 50 0 0 0-50 50v1100a50 50 0 0 0 50 50h900a50 50 0 0 0 50-50V350a49.7 49.7 0 0 0-.2-4.6zM800 170.7 929.3 300H800V170.7zM200 1100V100h500v250a50 50 0 0 0 50 50h250v700H200z\"/></svg></div>";
+  this._.dom.button.innerHTML = "<div data-action=\"src\"><svg xmlns=\"http://www.w3.org/2000/svg\" width=\"12px\" viewBox=\"0 0 1200 1200\"><path d=\"M1099.8 345.4v-.4a49.8 49.8 0 0 0-9.4-24.6c-.1 0-.2 0-.2-.2l-1.2-1.5-.4-.4-1.2-1.4-.4-.5a50 50 0 0 0-1.6-1.8l-300-300-1.8-1.6-.5-.4-1.4-1.2-.4-.4-1.5-1.2c-.1 0-.2 0-.3-.2l-1.8-1.2A49.7 49.7 0 0 0 755 .2h-.4A50.3 50.3 0 0 0 750 0H150a50 50 0 0 0-50 50v1100a50 50 0 0 0 50 50h900a50 50 0 0 0 50-50V350a49.7 49.7 0 0 0-.2-4.6zM800 170.7 929.3 300H800V170.7zM200 1100V100h500v250a50 50 0 0 0 50 50h250v700H200z\"/></svg></div>\n<div data-action=\"fit\"><svg xmlns=\"http://www.w3.org/2000/svg\" width=\"12px\" viewBox=\"0 0 1200 1200\"><path d=\"M1100 50H100a50 50 0 0 0-50 50v1000a50 50 0 0 0 50 50h1000a50 50 0 0 0 50-50V100a50 50 0 0 0-50-50zm-50 1000H150V150h900v900zM350 900h500a50 50 0 0 0 50-50V350a50 50 0 0 0-50-50H350a50 50 0 0 0-50 50v500a50 50 0 0 0 50 50zm50-500h400v400H400V400z\"/></svg></div>";
   this._.dom.button.addEventListener('mousedown', function(evt){
     return evt.stopPropagation();
   });
@@ -110,8 +110,6 @@ resizer = function(){
     action = tgt.dataset.action;
     switch (action) {
     case 'src':
-      break;
-    case 'mode':
       break;
     case 'fit':
       if (!(blot = Quill.find(this$._.tgt.node))) {
