@@ -9,5 +9,11 @@ editor = new Quill view.get(\editor), do
       handlers:
         image: ->
           range = editor.getSelection true
-          editor.insertEmbed range.index, 'image-plus', {src: '/assets/img/sample.jpg'}, 'user'
+          opt =
+            src: '/assets/img/sample.jpg'
+            mode: \auto
+            width: \100%
+            height: \120px
+            fit: \cover
+          editor.insertEmbed range.index, 'image-plus', opt, 'user'
           editor.setSelection range.index + 1
