@@ -265,7 +265,7 @@ ref$.create = function(opt){
       evt: evt
     });
     moveHandler = function(evt){
-      var position, box, pos2, quill, oldBlot, oldIndex, getBlot, ref$, newBlot, newIndex, width, height, delta;
+      var position, box, quill, oldBlot, oldIndex, getBlot, ref$, newBlot, newIndex, width, height, delta;
       if (evt.buttons) {
         node._dragging = true;
         return imagePlusBlot.resizer.caret({
@@ -283,10 +283,6 @@ ref$.create = function(opt){
         return;
       }
       box = node.getBoundingClientRect();
-      pos2 = document.caretPositionFromPoint(box.x, box.y);
-      if (!pos2) {
-        return;
-      }
       if (!node.closest('.ql-editor')) {
         return;
       }

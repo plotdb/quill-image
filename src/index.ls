@@ -168,13 +168,9 @@ image-plus-blot <<< Embed <<<
         node._dragging = false
         if !(position = document.caretPositionFromPoint evt.clientX, evt.clientY) => return
         box = node.getBoundingClientRect!
-        # current pos. used to prevent small movement which leads to strange behavior with quick click
-        pos2 = document.caretPositionFromPoint box.x, box.y
-        if !pos2 => return
         # drag to some strange place: .ql-editor null
         if !node.closest('.ql-editor') => return
         # single click trigger something like moving after itself
-        #if pos2.offsetNode == position.offsetNode and pos2.offset == position.offset - 1 => return
         quill = Quill.find node.closest('.ql-editor').parentElement
         old-blot = Quill.find node
         old-index = quill.getIndex old-blot
@@ -189,7 +185,6 @@ image-plus-blot <<< Embed <<<
         {width, height} = old-blot.formats!
         if new-index > old-index => new-index -= 1
         if new-index == old-index => return
-        #if Math.abs(new-index - old-index) < 1 => return
         delta = new Delta!retain(old-index <? new-index)
         # we don't use `node{src}` below because it will be the 1px gif.
         delta = if old-index < new-index => delta.delete(1)
