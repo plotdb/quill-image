@@ -1,5 +1,6 @@
 Embed = Quill.import \blots/embed
 Delta = Quill.import \delta
+fit2size = (v = '') -> if !v or v == \fill => "100% 100%" else v
 
 image-plus-blot = -> Reflect.construct Embed, arguments, image-plus-blot
 image-plus-blot.prototype = Object.create Embed.prototype
@@ -9,7 +10,8 @@ image-plus-blot.prototype <<<
     if n in <[width height]>
       if v? => @domNode.setAttribute n, v
       else @domNode.removeAttribute n
-    else if n in <[fit]> => @domNode.style.backgroundSize = (v or '')
+    else if n in <[fit]> => @domNode.style.backgroundSize = fit2size v
+    else if n in <[repeat]> => @domNode.style.backgroundRepeat = v or 'no-repeat'
     else Embed.call @, n, v
 
 Object.setPrototypeOf image-plus-blot, Embed
@@ -47,7 +49,18 @@ resizer = ->
 
   @_.dom.button.addEventListener \mousedown, (evt) -> evt.stopPropagation!
   @_.dom.button.addEventListener \mouseup, (evt) -> evt.stopPropagation!
-  @_.dom.button.addEventListener \click, (evt) -> /* trigger file picker */ evt.stopPropagation!
+  @_.dom.button.addEventListener \click, (evt) ~>
+    evt.stopPropagation!
+    if !(node = @_.editor.container.querySelector("[data-qip-key='#{@_.key}']")) => return
+    if !(blot = Quill.find node) => return
+    quill = @_.editor
+    index = quill.getIndex blot
+    f = quill.getFormat index, 1
+    cur = f.fit or \fill
+    cycle = <[fill cover contain]>
+    i = cycle.indexOf cur
+    next = cycle[(i + 1) % cycle.length]
+    quill.formatText index, 1, {fit: next}
 
   move-handler = (evt) ~>
     evt.stopPropagation!
@@ -162,9 +175,10 @@ image-plus-blot <<< Embed <<<
     node.setAttribute \data-src, opt.src
     node.style <<<
       background: "url(#{opt.src})"
-      backgroundSize: if !opt.fit or opt.fit == \fill => "100% 100%" else opt.fit
+      backgroundSize: fit2size opt.fit
       backgroundColor: 'rgba(0,0,0,.8)'
       backgroundPosition: 'center center'
+      backgroundRepeat: opt.repeat or 'no-repeat'
 
     node.setAttribute \alt, (opt.alt or '')
     node.setAttribute \data-qip-key, key = (opt.key or "quill-image-plus-#{Math.random!toString(36)substring(2)}")
@@ -233,9 +247,10 @@ image-plus-blot <<< Embed <<<
         .map (t) -> [t, n.getAttribute({src: "data-src", key: "data-qip-key"}[t] or t)]
     )
   formats: (node) ->
-    styles = {fit: \backgroundSize}
+    s = node.style
     ret = Object.fromEntries <[width height]>.map (t) -> [t, node.getAttribute(t) or '']
-    ret <<< Object.fromEntries <[fit]>.map (t) -> [t, node.style[(styles[t] or t)] or '']
+    ret.fit = if (v = s.backgroundSize) == "100% 100%" or !v => "fill" else v
+    ret.repeat = s.backgroundRepeat or 'repeat'
     ret
 
 Quill.register image-plus-blot
