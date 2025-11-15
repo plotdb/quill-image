@@ -80,13 +80,15 @@ resizer = ->
         ]
       })
       return @bind {node: n, key: @_.key}
-    [x, y, dir] = [evt.clientX, evt.clientY, @_.dir]
+    [x, y, dir, free] = [evt.clientX, evt.clientY, @_.dir, evt.altKey]
     [dx, dy] = [x - @_.x, y - @_.y]
     [w,h] = [@_.pos.width, @_.pos.height]
     if /n/.exec(dir) => dy = -dy
     if /w/.exec(dir) => dx = -dx
-    if !@_.resize-based-axis => @_.resize-based-axis = if Math.abs(dx) > Math.abs(dy) => \x else \y
-    [dx, dy] = if @_.resize-based-axis == \x => [dx, dx * h/w] else [dy * w/h, dy]
+
+    if !free =>
+      if !@_.resize-based-axis => @_.resize-based-axis = if Math.abs(dx) > Math.abs(dy) => \x else \y
+      [dx, dy] = if @_.resize-based-axis == \x => [dx, dx * h/w] else [dy * w/h, dy]
     {x, y, width, height} = @_.pos
     if /n/.exec(dir) => [y, height] = [@_.pos.y - dy, @_.pos.height + dy]
     if /s/.exec(dir) => [y, height] = [@_.pos.y, @_.pos.height + dy]

@@ -84,7 +84,7 @@ resizer = function(){
     });
   });
   moveHandler = function(evt){
-    var n, blot, index, ref$, x, y, dir, dx, dy, w, h, width, height;
+    var n, blot, index, ref$, x, y, dir, free, dx, dy, w, h, width, height;
     evt.stopPropagation();
     if (!this$._.start || !evt.buttons) {
       window.removeEventListener('mousemove', moveHandler);
@@ -118,7 +118,7 @@ resizer = function(){
         key: this$._.key
       });
     }
-    ref$ = [evt.clientX, evt.clientY, this$._.dir], x = ref$[0], y = ref$[1], dir = ref$[2];
+    ref$ = [evt.clientX, evt.clientY, this$._.dir, evt.altKey], x = ref$[0], y = ref$[1], dir = ref$[2], free = ref$[3];
     ref$ = [x - this$._.x, y - this$._.y], dx = ref$[0], dy = ref$[1];
     ref$ = [this$._.pos.width, this$._.pos.height], w = ref$[0], h = ref$[1];
     if (/n/.exec(dir)) {
@@ -127,12 +127,14 @@ resizer = function(){
     if (/w/.exec(dir)) {
       dx = -dx;
     }
-    if (!this$._.resizeBasedAxis) {
-      this$._.resizeBasedAxis = Math.abs(dx) > Math.abs(dy) ? 'x' : 'y';
+    if (!free) {
+      if (!this$._.resizeBasedAxis) {
+        this$._.resizeBasedAxis = Math.abs(dx) > Math.abs(dy) ? 'x' : 'y';
+      }
+      ref$ = this$._.resizeBasedAxis === 'x'
+        ? [dx, dx * h / w]
+        : [dy * w / h, dy], dx = ref$[0], dy = ref$[1];
     }
-    ref$ = this$._.resizeBasedAxis === 'x'
-      ? [dx, dx * h / w]
-      : [dy * w / h, dy], dx = ref$[0], dy = ref$[1];
     ref$ = this$._.pos, x = ref$.x, y = ref$.y, width = ref$.width, height = ref$.height;
     if (/n/.exec(dir)) {
       ref$ = [this$._.pos.y - dy, this$._.pos.height + dy], y = ref$[0], height = ref$[1];

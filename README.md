@@ -1,5 +1,6 @@
 # quill-image-plus
 
+
 possible options:
 
  - mode: define how size is decided
@@ -19,3 +20,8 @@ possible options:
  - (TBD) align: only if fit is either `contain` or `cover`.
    - vertical: `top` / `middle` / `bottom`. default `middle`
    - horizontal: `left` / `middle` / `right`. default `middle`
+
+## Aspect Ratio
+
+Hold Option/Alt while resizing to unlock freeform scaling.
+
