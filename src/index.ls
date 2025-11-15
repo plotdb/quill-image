@@ -9,6 +9,7 @@ image-plus-blot.prototype <<<
     if n in <[width height]>
       if v? => @domNode.setAttribute n, v
       else @domNode.removeAttribute n
+    else if n in <[fit]> => @domNode.style.backgroundSize = (v or '')
     else Embed.call @, n, v
 
 Object.setPrototypeOf image-plus-blot, Embed
@@ -19,6 +20,7 @@ resizer = ->
   @_.dom.caret.classList.add \quill-image-plus-resizer-caret
   @_.dom.base = document.createElement \div
   @_.dom.base.classList.add \quill-image-plus-resizer-root
+
   @_.dom <<< Object.fromEntries <[n e s w]>.map (t) ~>
     n = document.createElement \div
     @_.dom.base.appendChild n
@@ -33,6 +35,20 @@ resizer = ->
     @_.dom.base.appendChild n
     n.classList.add \quill-image-plus-resizer-dot
     [t, n]
+
+  @_.dom.button = n = document.createElement \div
+  # add this button into view when we are ready
+  # @_.dom.base.appendChild n
+  n.classList.add \quill-image-plus-button
+
+  @_.dom.button.innerHTML = """
+  <svg xmlns="http://www.w3.org/2000/svg" width="12px" viewBox="0 0 1200 1200"><path d="M1099.8 345.4v-.4a49.8 49.8 0 0 0-9.4-24.6c-.1 0-.2 0-.2-.2l-1.2-1.5-.4-.4-1.2-1.4-.4-.5a50 50 0 0 0-1.6-1.8l-300-300-1.8-1.6-.5-.4-1.4-1.2-.4-.4-1.5-1.2c-.1 0-.2 0-.3-.2l-1.8-1.2A49.7 49.7 0 0 0 755 .2h-.4A50.3 50.3 0 0 0 750 0H150a50 50 0 0 0-50 50v1100a50 50 0 0 0 50 50h900a50 50 0 0 0 50-50V350a49.7 49.7 0 0 0-.2-4.6zM800 170.7 929.3 300H800V170.7zM200 1100V100h500v250a50 50 0 0 0 50 50h250v700H200z"/></svg>
+  """
+
+  @_.dom.button.addEventListener \mousedown, (evt) -> evt.stopPropagation!
+  @_.dom.button.addEventListener \mouseup, (evt) -> evt.stopPropagation!
+  @_.dom.button.addEventListener \click, (evt) -> /* trigger file picker */ evt.stopPropagation!
+
   move-handler = (evt) ~>
     evt.stopPropagation!
     if !@_.start or !evt.buttons =>
@@ -133,6 +149,8 @@ resizer.prototype = Object.create(Object.prototype) <<<
         transform: "translate(#{Math.floor x}px, #{Math.floor y}px)"
         width: "#{Math.floor width or bar-size}px"
         height: "#{Math.floor height or bar-size}px"
+    @_.dom.button.style <<<
+      transform: "translate(#{Math.floor x + node-size}px, #{Math.floor y + node-size}px)"
 
 image-plus-blot <<< Embed <<<
   blotName: 'image-plus'
@@ -144,7 +162,7 @@ image-plus-blot <<< Embed <<<
     node.setAttribute \data-src, opt.src
     node.style <<<
       background: "url(#{opt.src})"
-      backgroundSize: \contain
+      backgroundSize: if !opt.fit or opt.fit == \fill => "100% 100%" else opt.fit
       backgroundColor: 'rgba(0,0,0,.8)'
       backgroundPosition: 'center center'
 
@@ -214,6 +232,10 @@ image-plus-blot <<< Embed <<<
       <[src alt width height key]>
         .map (t) -> [t, n.getAttribute({src: "data-src", key: "data-qip-key"}[t] or t)]
     )
-  formats: (node) -> Object.fromEntries <[width height]>.map (t) -> [t, node.getAttribute(t) or '']
+  formats: (node) ->
+    styles = {fit: \backgroundSize}
+    ret = Object.fromEntries <[width height]>.map (t) -> [t, node.getAttribute(t) or '']
+    ret <<< Object.fromEntries <[fit]>.map (t) -> [t, node.style[(styles[t] or t)] or '']
+    ret
 
 Quill.register image-plus-blot

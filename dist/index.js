@@ -14,13 +14,15 @@ imagePlusBlot.prototype.format = function(n, v){
     } else {
       return this.domNode.removeAttribute(n);
     }
+  } else if (n === 'fit') {
+    return this.domNode.style.backgroundSize = v || '';
   } else {
     return Embed.call(this, n, v);
   }
 };
 Object.setPrototypeOf(imagePlusBlot, Embed);
 resizer = function(){
-  var moveHandler, this$ = this;
+  var n, moveHandler, this$ = this;
   this._ = {
     dom: {}
   };
@@ -42,6 +44,18 @@ resizer = function(){
     n.classList.add('quill-image-plus-resizer-dot');
     return [t, n];
   })));
+  this._.dom.button = n = document.createElement('div');
+  n.classList.add('quill-image-plus-button');
+  this._.dom.button.innerHTML = "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"12px\" viewBox=\"0 0 1200 1200\"><path d=\"M1099.8 345.4v-.4a49.8 49.8 0 0 0-9.4-24.6c-.1 0-.2 0-.2-.2l-1.2-1.5-.4-.4-1.2-1.4-.4-.5a50 50 0 0 0-1.6-1.8l-300-300-1.8-1.6-.5-.4-1.4-1.2-.4-.4-1.5-1.2c-.1 0-.2 0-.3-.2l-1.8-1.2A49.7 49.7 0 0 0 755 .2h-.4A50.3 50.3 0 0 0 750 0H150a50 50 0 0 0-50 50v1100a50 50 0 0 0 50 50h900a50 50 0 0 0 50-50V350a49.7 49.7 0 0 0-.2-4.6zM800 170.7 929.3 300H800V170.7zM200 1100V100h500v250a50 50 0 0 0 50 50h250v700H200z\"/></svg>";
+  this._.dom.button.addEventListener('mousedown', function(evt){
+    return evt.stopPropagation();
+  });
+  this._.dom.button.addEventListener('mouseup', function(evt){
+    return evt.stopPropagation();
+  });
+  this._.dom.button.addEventListener('click', function(evt){
+    return evt.stopPropagation();
+  });
   moveHandler = function(evt){
     var n, blot, index, ref$, x, y, dir, dx, dy, w, h, width, height;
     evt.stopPropagation();
@@ -217,11 +231,12 @@ resizer.prototype = (ref$ = Object.create(Object.prototype), ref$.dismissCaret =
     t = arg$[0], x = arg$[1], y = arg$[2];
     return ref$ = this$._.dom[t].style, ref$.transform = "translate(" + Math.floor(x) + "px, " + Math.floor(y) + "px)", ref$;
   });
-  return [['n', x, y, width, 0], ['e', x + width - barSize, y, 0, height], ['s', x, y + height - barSize, width, 0], ['w', x, y, 0, height]].map(function(arg$){
+  [['n', x, y, width, 0], ['e', x + width - barSize, y, 0, height], ['s', x, y + height - barSize, width, 0], ['w', x, y, 0, height]].map(function(arg$){
     var t, x, y, width, height, ref$;
     t = arg$[0], x = arg$[1], y = arg$[2], width = arg$[3], height = arg$[4];
     return ref$ = this$._.dom[t].style, ref$.transform = "translate(" + Math.floor(x) + "px, " + Math.floor(y) + "px)", ref$.width = (Math.floor(width) || barSize) + "px", ref$.height = (Math.floor(height) || barSize) + "px", ref$;
   });
+  return ref$ = this._.dom.button.style, ref$.transform = "translate(" + Math.floor(x + nodeSize) + "px, " + Math.floor(y + nodeSize) + "px)", ref$;
 }, ref$);
 ref$ = import$(imagePlusBlot, Embed);
 ref$.blotName = 'image-plus';
@@ -237,7 +252,9 @@ ref$.create = function(opt){
   node.setAttribute('data-src', opt.src);
   ref$ = node.style;
   ref$.background = "url(" + opt.src + ")";
-  ref$.backgroundSize = 'contain';
+  ref$.backgroundSize = !opt.fit || opt.fit === 'fill'
+    ? "100% 100%"
+    : opt.fit;
   ref$.backgroundColor = 'rgba(0,0,0,.8)';
   ref$.backgroundPosition = 'center center';
   node.setAttribute('alt', opt.alt || '');
@@ -372,9 +389,17 @@ ref$.value = function(n){
   }));
 };
 ref$.formats = function(node){
-  return Object.fromEntries(['width', 'height'].map(function(t){
+  var styles, ret;
+  styles = {
+    fit: 'backgroundSize'
+  };
+  ret = Object.fromEntries(['width', 'height'].map(function(t){
     return [t, node.getAttribute(t) || ''];
   }));
+  import$(ret, Object.fromEntries(['fit'].map(function(t){
+    return [t, node.style[styles[t] || t] || ''];
+  })));
+  return ret;
 };
 Quill.register(imagePlusBlot);
 function import$(obj, src){
