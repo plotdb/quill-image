@@ -92,13 +92,12 @@ resizer = ->
       if !(blot = Quill.find @_.tgt.node) => return
       quill = @_.editor
       index = quill.getIndex blot
-      # 觸發自訂事件讓外部處理檔案選擇
       quill.emitter.emit \image-plus-request-source, {
         blot: blot
         index: index
         node: @_.tgt.node
         currentSrc: getfmt({node: @_.tgt.node, name: \src})
-        # 外部可透過這個 callback 設定新的 src
+        # we may need to consider collaborative inside
         setSrc: ({src} = {}) ~> if src => quill.formatText index, 1, {src}
       }
     | \fit =>

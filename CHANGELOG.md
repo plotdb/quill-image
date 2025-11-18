@@ -1,5 +1,10 @@
 # Change Logs
 
+## v0.0.5
+
+ - support src update event
+
+
 ## v0.0.4
 
  - fix bug: sig undefined when setting image, due to incorrect variable name used

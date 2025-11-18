@@ -43,6 +43,17 @@ where `options` contains following fields:
    - horizontal: `left` / `middle` / `right`. default `middle`
 
 
+## EVents
+
+ - `image-plus-request-source`: quill event when an image requests a new image url.
+   - option is an object with following fields::
+     - `blot`: this blot object
+     - `index`: index of this blot
+     - `node`: dom node of this blot
+     - `currentSrc`: current src
+     - `setSrc({src})`: fallback function to update src
+
+
 ## User Interface Tips
 
  - Hold Option/Alt while resizing to unlock freeform scaling.
