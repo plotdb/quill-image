@@ -1,5 +1,10 @@
 # Change Logs
 
+## v0.0.4
+
+ - fix bug: sig undefined when setting image, due to incorrect variable name used
+
+
 ## v0.0.3
 
  - move alt and src from value to formats
