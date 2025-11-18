@@ -3,7 +3,7 @@ Delta = Quill.import \delta
 fit2size = (v = '') -> if !v or v == \fill => "100% 100%" else v
 attrname = (v) -> if v in <[width height alt]> => v else if v in <[key]> => "data-qip-#v" else "data-#v"
 getfmt = ({node, name}) ->
-  if name in <[width height mode alt]> => return node.getAttribute(attrname name) or ''
+  if name in <[width height mode alt src]> => return node.getAttribute(attrname name) or ''
   s = node.style
   if name == \fit => return if (v = s.backgroundSize) == "100% 100%" or v == \initial or !v => \fill else v
   if name == \repeat => return s.backgroundRepeat or 'repeat'
@@ -15,6 +15,9 @@ setfmt = ({node, name: n, value: v}) ->
     else node.removeAttribute attrname(n)
   else if n in <[fit]> => node.style.backgroundSize = fit2size v
   else if n in <[repeat]> => node.style.backgroundRepeat = v or 'no-repeat'
+  else if n in <[src]> =>
+    node.setAttribute attrname(n), v
+    node.style.backgroundImage = "url(#v)"
   # TODO this causes exception. not sure if we do need it or we can remove?
   #else Embed.call @, n, v
 
@@ -270,6 +273,6 @@ image-plus-blot <<< Embed <<<
     return node
   value: (n) -> Object.fromEntries( <[src key]> .map (t) -> [t, n.getAttribute attrname t])
   formats: (node) ->
-    Object.fromEntries <[width height mode fit repeat alt]>.map (name) -> [name, getfmt {node, name}]
+    Object.fromEntries <[width height mode fit repeat alt src]>.map (name) -> [name, getfmt {node, name}]
 
 Quill.register image-plus-blot

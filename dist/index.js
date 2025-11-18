@@ -22,7 +22,7 @@ attrname = function(v){
 getfmt = function(arg$){
   var node, name, s, v;
   node = arg$.node, name = arg$.name;
-  if (name === 'width' || name === 'height' || name === 'mode' || name === 'alt') {
+  if (name === 'width' || name === 'height' || name === 'mode' || name === 'alt' || name === 'src') {
     return node.getAttribute(attrname(name)) || '';
   }
   s = node.style;
@@ -51,6 +51,9 @@ setfmt = function(arg$){
     return node.style.backgroundSize = fit2size(v);
   } else if (n === 'repeat') {
     return node.style.backgroundRepeat = v || 'no-repeat';
+  } else if (n === 'src') {
+    node.setAttribute(attrname(n), v);
+    return node.style.backgroundImage = "url(" + v + ")";
   }
 };
 imagePlusBlot = function(){
@@ -473,7 +476,7 @@ ref$.value = function(n){
   }));
 };
 ref$.formats = function(node){
-  return Object.fromEntries(['width', 'height', 'mode', 'fit', 'repeat', 'alt'].map(function(name){
+  return Object.fromEntries(['width', 'height', 'mode', 'fit', 'repeat', 'alt', 'src'].map(function(name){
     return [
       name, getfmt({
         node: node,
