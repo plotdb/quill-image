@@ -98,7 +98,7 @@ setfmt = function(arg$){
         };
         return img.src = v;
       });
-    }(sig, v);
+    }(lc.img.sig, v);
     node.setAttribute(attrname(n), v);
     return node.style.backgroundImage = "url(" + v + ")";
   }

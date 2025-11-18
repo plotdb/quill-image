@@ -36,7 +36,7 @@ setfmt = ({node, name: n, value: v}) ->
         if sig != lc.img.sig => return res!
         lc.img.loading = false; res!
       img.src = v
-    )(sig, v)
+    )(lc.img.sig, v)
     node.setAttribute attrname(n), v
     node.style.backgroundImage = "url(#v)"
   # TODO this causes exception. not sure if we do need it or we can remove?
