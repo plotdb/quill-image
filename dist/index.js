@@ -11,7 +11,7 @@ fit2size = function(v){
   }
 };
 attrname = function(v){
-  if (v === 'width' || v === 'height') {
+  if (v === 'width' || v === 'height' || v === 'alt') {
     return v;
   } else if (v === 'key') {
     return "data-qip-" + v;
@@ -22,12 +22,12 @@ attrname = function(v){
 getfmt = function(arg$){
   var node, name, s, v;
   node = arg$.node, name = arg$.name;
-  if (name === 'width' || name === 'height' || name === 'mode') {
+  if (name === 'width' || name === 'height' || name === 'mode' || name === 'alt') {
     return node.getAttribute(attrname(name)) || '';
   }
   s = node.style;
   if (name === 'fit') {
-    return (v = s.backgroundSize) === "100% 100%" || !v ? "fill" : v;
+    return (v = s.backgroundSize) === "100% 100%" || v === 'initial' || !v ? 'fill' : v;
   }
   if (name === 'repeat') {
     return s.backgroundRepeat || 'repeat';
@@ -41,7 +41,7 @@ setfmt = function(arg$){
       mode: 'free'
     }[n];
   }
-  if (n === 'width' || n === 'height' || n === 'mode') {
+  if (n === 'width' || n === 'height' || n === 'mode' || n === 'alt') {
     if (v != null) {
       return node.setAttribute(attrname(n), v);
     } else {
@@ -51,8 +51,6 @@ setfmt = function(arg$){
     return node.style.backgroundSize = fit2size(v);
   } else if (n === 'repeat') {
     return node.style.backgroundRepeat = v || 'no-repeat';
-  } else {
-    return Embed.call(this, n, v);
   }
 };
 imagePlusBlot = function(){
@@ -332,7 +330,7 @@ ref$.create = function(opt){
   ref$.background = "url(" + opt.src + ")";
   ref$.backgroundColor = 'rgba(0,0,0,.8)';
   ref$.backgroundPosition = 'center center';
-  node.setAttribute('alt', opt.alt || '');
+  ref$.backgroundSize = '100% 100%';
   node.setAttribute('data-qip-key', key = opt.key || "quill-image-plus-" + Math.random().toString(36).substring(2));
   lc.img = {
     ref: null,
@@ -383,7 +381,7 @@ ref$.create = function(opt){
       evt: evt
     });
     moveHandler = function(evt){
-      var position, box, quill, oldBlot, oldIndex, getBlot, ref$, newBlot, newIndex, width, height, delta;
+      var position, box, quill, oldBlot, oldIndex, getBlot, ref$, newBlot, newIndex, fmts, delta;
       if (evt.buttons) {
         node._.dragging = true;
         return imagePlusBlot.resizer.caret({
@@ -426,7 +424,7 @@ ref$.create = function(opt){
       if (!newBlot) {
         return;
       }
-      ref$ = oldBlot.formats(), width = ref$.width, height = ref$.height;
+      fmts = oldBlot.formats();
       if (newIndex > oldIndex) {
         newIndex -= 1;
       }
@@ -437,32 +435,22 @@ ref$.create = function(opt){
       delta = oldIndex < newIndex
         ? delta['delete'](1)
         : oldIndex > newIndex ? delta.insert({
-          'image-plus': import$((ref$ = {
-            alt: node.alt,
-            width: node.width,
-            height: node.height
-          }, ref$.transient = true, ref$), Object.fromEntries(['src', 'key'].map(function(t){
+          'image-plus': import$({
+            transient: true
+          }, Object.fromEntries(['src', 'key'].map(function(t){
             return [t, node.getAttribute(attrname(t))];
           })))
-        }, {
-          width: width,
-          height: height
-        }) : delta;
+        }, fmts) : delta;
       delta = delta.retain(Math.abs(newIndex - oldIndex));
       delta = oldIndex > newIndex
         ? delta['delete'](1)
         : oldIndex < newIndex ? delta.insert({
-          'image-plus': import$((ref$ = {
-            alt: node.alt,
-            width: node.width,
-            height: node.height
-          }, ref$.transient = true, ref$), Object.fromEntries(['src', 'key'].map(function(t){
+          'image-plus': import$({
+            transient: true
+          }, Object.fromEntries(['src', 'key'].map(function(t){
             return [t, node.getAttribute(attrname(t))];
           })))
-        }, {
-          width: width,
-          height: height
-        }) : delta;
+        }, fmts) : delta;
       quill.updateContents(delta);
       return imagePlusBlot.resizer.dismissCaret();
     };
@@ -480,12 +468,12 @@ ref$.create = function(opt){
   return node;
 };
 ref$.value = function(n){
-  return Object.fromEntries(['src', 'alt', 'key'].map(function(t){
+  return Object.fromEntries(['src', 'key'].map(function(t){
     return [t, n.getAttribute(attrname(t))];
   }));
 };
 ref$.formats = function(node){
-  return Object.fromEntries(['width', 'height', 'mode', 'fit', 'repeat'].map(function(name){
+  return Object.fromEntries(['width', 'height', 'mode', 'fit', 'repeat', 'alt'].map(function(name){
     return [
       name, getfmt({
         node: node,

@@ -1,21 +1,22 @@
 Embed = Quill.import \blots/embed
 Delta = Quill.import \delta
 fit2size = (v = '') -> if !v or v == \fill => "100% 100%" else v
-attrname = (v) -> if v in <[width height]> => v else if v in <[key]> => "data-qip-#v" else "data-#v"
+attrname = (v) -> if v in <[width height alt]> => v else if v in <[key]> => "data-qip-#v" else "data-#v"
 getfmt = ({node, name}) ->
-  if name in <[width height mode]> => return node.getAttribute(attrname name) or ''
+  if name in <[width height mode alt]> => return node.getAttribute(attrname name) or ''
   s = node.style
-  if name == \fit => return if (v = s.backgroundSize) == "100% 100%" or !v => "fill" else v
+  if name == \fit => return if (v = s.backgroundSize) == "100% 100%" or v == \initial or !v => \fill else v
   if name == \repeat => return s.backgroundRepeat or 'repeat'
 
 setfmt = ({node, name: n, value: v}) ->
   if n in <[mode]> and !v => v = {mode: 'free'}[n]
-  if n in <[width height mode]>
+  if n in <[width height mode alt]>
     if v? => node.setAttribute attrname(n), v
     else node.removeAttribute attrname(n)
   else if n in <[fit]> => node.style.backgroundSize = fit2size v
   else if n in <[repeat]> => node.style.backgroundRepeat = v or 'no-repeat'
-  else Embed.call @, n, v
+  # TODO this causes exception. not sure if we do need it or we can remove?
+  #else Embed.call @, n, v
 
 image-plus-blot = -> Reflect.construct Embed, arguments, image-plus-blot
 image-plus-blot.prototype = Object.create Embed.prototype
@@ -196,7 +197,7 @@ image-plus-blot <<< Embed <<<
       background: "url(#{opt.src})"
       backgroundColor: 'rgba(0,0,0,.8)'
       backgroundPosition: 'center center'
-    node.setAttribute \alt, (opt.alt or '')
+      backgroundSize: '100% 100%' # default value since if no fit in formats it will not be set
     node.setAttribute \data-qip-key, key = (opt.key or "quill-image-plus-#{Math.random!toString(36)substring(2)}")
     lc.img =
       ref: null
@@ -240,25 +241,25 @@ image-plus-blot <<< Embed <<<
         {blot: new-blot, index: new-index} = get-blot position
         # drag outside - no new-blot
         if !new-blot => return
-        {width, height} = old-blot.formats!
+        fmts = old-blot.formats!
         if new-index > old-index => new-index -= 1
         if new-index == old-index => return
         delta = new Delta!retain(old-index <? new-index)
         # we don't use `node{src}` below because it will be the 1px gif.
         delta = if old-index < new-index => delta.delete(1)
         else if old-index > new-index => delta.insert(
-          {'image-plus': node{alt, width, height} <<< { transient: true } <<< (
+          {'image-plus': {} <<< { transient: true } <<< (
             Object.fromEntries(<[src key]>.map (t) -> [t, node.getAttribute(attrname t)])
           )},
-          {width, height}
+          fmts
         ) else delta
         delta = delta.retain(Math.abs(new-index - old-index))
         delta = if old-index > new-index => delta.delete(1)
         else if old-index < new-index => delta.insert(
-          {'image-plus': node{alt, width, height} <<< {transient: true } <<< (
+          {'image-plus': {} <<< {transient: true } <<< (
             Object.fromEntries(<[src key]>.map (t) -> [t, node.getAttribute(attrname t)])
           )},
-          {width, height}
+          fmts
         ) else delta
         quill.updateContents delta
         image-plus-blot.resizer.dismiss-caret!
@@ -267,8 +268,8 @@ image-plus-blot <<< Embed <<<
       window.addEventListener \mouseup, move-handler
     if opt.transient => node.onload = -> image-plus-blot.resizer.bind {node, key}
     return node
-  value: (n) -> Object.fromEntries( <[src alt key]> .map (t) -> [t, n.getAttribute attrname t])
+  value: (n) -> Object.fromEntries( <[src key]> .map (t) -> [t, n.getAttribute attrname t])
   formats: (node) ->
-    Object.fromEntries <[width height mode fit repeat]>.map (name) -> [name, getfmt {node, name}]
+    Object.fromEntries <[width height mode fit repeat alt]>.map (name) -> [name, getfmt {node, name}]
 
 Quill.register image-plus-blot

@@ -15,6 +15,15 @@ editor = new Quill view.get(\editor), do
             width: \100%
             height: \120px
             fit: \cover
-          opt = src: '/assets/img/sample.jpg', mode: \free
-          editor.insertEmbed range.index, 'image-plus', opt, 'user'
+          opt = src: '/assets/img/sample.jpg', mode: \free, alt: \hello
+          /*
+          editor.updateContents({
+            ops: [
+            * retain: range.index
+            * insert: 'image-plus': {}, attributes: opt
+            ]
+          }, 'user')
+          */
+          editor.insertEmbed range.index, 'image-plus', opt{src}, 'user'
+          editor.formatText range.index, 1, opt
           editor.setSelection range.index + 1
