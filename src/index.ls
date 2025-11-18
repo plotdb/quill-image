@@ -6,7 +6,7 @@ getfmt = ({node, name}) ->
   if name in <[width height mode alt src]> => return node.getAttribute(attrname name) or ''
   s = node.style
   if name == \fit => return if (v = s.backgroundSize) == "100% 100%" or v == \initial or !v => \fill else v
-  if name == \repeat => return s.backgroundRepeat or 'repeat'
+  if name == \repeat => return s.backgroundRepeat or 'no-repeat'
 
 setfmt = ({node, name: n, value: v}) ->
   if n in <[mode]> and !v => v = {mode: 'free'}[n]
@@ -16,6 +16,27 @@ setfmt = ({node, name: n, value: v}) ->
   else if n in <[fit]> => node.style.backgroundSize = fit2size v
   else if n in <[repeat]> => node.style.backgroundRepeat = v or 'no-repeat'
   else if n in <[src]> =>
+    lc = node._
+    lc.img =
+      ref: null
+      loading: true
+      sig: Math.random!
+    if lc.promise =>
+    lc.promise = ((sig, v) -> new Promise (res, rej) ->
+      lc.img.ref = img = new Image!
+      img.onload = ->
+        if sig != lc.img.sig => return res!
+        lc.img.loading = false
+        lc.img <<< {width: img.naturalWidth, height: img.naturalHeight}
+        [w,h] = [node.getAttribute(\width), node.getAttribute(\height)]
+        if !w? => setfmt {node, name: \width, value: lc.img.width}
+        if !h? => setfmt {node, name: \height, value: lc.img.height}
+        res!
+      img.onerror = ->
+        if sig != lc.img.sig => return res!
+        lc.img.loading = false; res!
+      img.src = v
+    )(sig, v)
     node.setAttribute attrname(n), v
     node.style.backgroundImage = "url(#v)"
   # TODO this causes exception. not sure if we do need it or we can remove?
@@ -195,26 +216,13 @@ image-plus-blot <<< Embed <<<
     # we use img tag but background style to render, and src is used to present a 1px transparent gif.
     # thus we can't use src to store the real src - instead we use data-src.
     node.setAttribute \src, "data:image/gif;base64,R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs="
-    node.setAttribute attrname(\src), opt.src
     node.style <<<
-      background: "url(#{opt.src})"
       backgroundColor: 'rgba(0,0,0,.8)'
       backgroundPosition: 'center center'
-      backgroundSize: '100% 100%' # default value since if no fit in formats it will not be set
+      backgroundSize: '100% 100%' # default value since if no fit in formats it won't be set
+      backgroundRepeat: \no-repeat # default value since if no repeat in formats it won't be set
     node.setAttribute \data-qip-key, key = (opt.key or "quill-image-plus-#{Math.random!toString(36)substring(2)}")
-    lc.img =
-      ref: null
-      loading: true
-    lc.promise = new Promise (res, rej) ->
-      lc.img.ref = img = new Image!
-      img.onload = ->
-        lc.img.loading = false
-        lc.img <<< {width: img.naturalWidth, height: img.naturalHeight}
-        [w,h] = [node.getAttribute(\width), node.getAttribute(\height)]
-        if !w? => setfmt {node, name: \width, value: lc.img.width}
-        if !h? => setfmt {node, name: \height, value: lc.img.height}
-      img.onerror = -> lc.img.loading = false
-      img.src = opt.src
+
     window.addEventListener \mouseup, -> image-plus-blot.resizer.unbind!
     node.setAttribute \draggable, false
     node.addEventListener \mouseup, (evt) -> evt.stopPropagation!
@@ -251,16 +259,16 @@ image-plus-blot <<< Embed <<<
         # we don't use `node{src}` below because it will be the 1px gif.
         delta = if old-index < new-index => delta.delete(1)
         else if old-index > new-index => delta.insert(
-          {'image-plus': {} <<< { transient: true } <<< (
-            Object.fromEntries(<[src key]>.map (t) -> [t, node.getAttribute(attrname t)])
+          {'image-plus': { transient: true } <<< (
+            Object.fromEntries(<[key]>.map (t) -> [t, node.getAttribute(attrname t)])
           )},
           fmts
         ) else delta
         delta = delta.retain(Math.abs(new-index - old-index))
         delta = if old-index > new-index => delta.delete(1)
         else if old-index < new-index => delta.insert(
-          {'image-plus': {} <<< {transient: true } <<< (
-            Object.fromEntries(<[src key]>.map (t) -> [t, node.getAttribute(attrname t)])
+          {'image-plus': {transient: true } <<< (
+            Object.fromEntries(<[key]>.map (t) -> [t, node.getAttribute(attrname t)])
           )},
           fmts
         ) else delta
@@ -271,7 +279,7 @@ image-plus-blot <<< Embed <<<
       window.addEventListener \mouseup, move-handler
     if opt.transient => node.onload = -> image-plus-blot.resizer.bind {node, key}
     return node
-  value: (n) -> Object.fromEntries( <[src key]> .map (t) -> [t, n.getAttribute attrname t])
+  value: (n) -> Object.fromEntries( <[key]> .map (t) -> [t, n.getAttribute attrname t])
   formats: (node) ->
     Object.fromEntries <[width height mode fit repeat alt src]>.map (name) -> [name, getfmt {node, name}]
 

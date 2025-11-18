@@ -30,11 +30,11 @@ getfmt = function(arg$){
     return (v = s.backgroundSize) === "100% 100%" || v === 'initial' || !v ? 'fill' : v;
   }
   if (name === 'repeat') {
-    return s.backgroundRepeat || 'repeat';
+    return s.backgroundRepeat || 'no-repeat';
   }
 };
 setfmt = function(arg$){
-  var node, n, v;
+  var node, n, v, lc;
   node = arg$.node, n = arg$.name, v = arg$.value;
   if (n === 'mode' && !v) {
     v = {
@@ -52,6 +52,53 @@ setfmt = function(arg$){
   } else if (n === 'repeat') {
     return node.style.backgroundRepeat = v || 'no-repeat';
   } else if (n === 'src') {
+    lc = node._;
+    lc.img = {
+      ref: null,
+      loading: true,
+      sig: Math.random()
+    };
+    if (lc.promise) {}
+    lc.promise = function(sig, v){
+      return new Promise(function(res, rej){
+        var img;
+        lc.img.ref = img = new Image();
+        img.onload = function(){
+          var ref$, w, h;
+          if (sig !== lc.img.sig) {
+            return res();
+          }
+          lc.img.loading = false;
+          ref$ = lc.img;
+          ref$.width = img.naturalWidth;
+          ref$.height = img.naturalHeight;
+          ref$ = [node.getAttribute('width'), node.getAttribute('height')], w = ref$[0], h = ref$[1];
+          if (w == null) {
+            setfmt({
+              node: node,
+              name: 'width',
+              value: lc.img.width
+            });
+          }
+          if (h == null) {
+            setfmt({
+              node: node,
+              name: 'height',
+              value: lc.img.height
+            });
+          }
+          return res();
+        };
+        img.onerror = function(){
+          if (sig !== lc.img.sig) {
+            return res();
+          }
+          lc.img.loading = false;
+          return res();
+        };
+        return img.src = v;
+      });
+    }(sig, v);
     node.setAttribute(attrname(n), v);
     return node.style.backgroundImage = "url(" + v + ")";
   }
@@ -328,47 +375,12 @@ ref$.create = function(opt){
     opt: {}
   };
   node.setAttribute('src', "data:image/gif;base64,R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs=");
-  node.setAttribute(attrname('src'), opt.src);
   ref$ = node.style;
-  ref$.background = "url(" + opt.src + ")";
   ref$.backgroundColor = 'rgba(0,0,0,.8)';
   ref$.backgroundPosition = 'center center';
   ref$.backgroundSize = '100% 100%';
+  ref$.backgroundRepeat = 'no-repeat';
   node.setAttribute('data-qip-key', key = opt.key || "quill-image-plus-" + Math.random().toString(36).substring(2));
-  lc.img = {
-    ref: null,
-    loading: true
-  };
-  lc.promise = new Promise(function(res, rej){
-    var img;
-    lc.img.ref = img = new Image();
-    img.onload = function(){
-      var ref$, w, h;
-      lc.img.loading = false;
-      ref$ = lc.img;
-      ref$.width = img.naturalWidth;
-      ref$.height = img.naturalHeight;
-      ref$ = [node.getAttribute('width'), node.getAttribute('height')], w = ref$[0], h = ref$[1];
-      if (w == null) {
-        setfmt({
-          node: node,
-          name: 'width',
-          value: lc.img.width
-        });
-      }
-      if (h == null) {
-        return setfmt({
-          node: node,
-          name: 'height',
-          value: lc.img.height
-        });
-      }
-    };
-    img.onerror = function(){
-      return lc.img.loading = false;
-    };
-    return img.src = opt.src;
-  });
   window.addEventListener('mouseup', function(){
     return imagePlusBlot.resizer.unbind();
   });
@@ -440,7 +452,7 @@ ref$.create = function(opt){
         : oldIndex > newIndex ? delta.insert({
           'image-plus': import$({
             transient: true
-          }, Object.fromEntries(['src', 'key'].map(function(t){
+          }, Object.fromEntries(['key'].map(function(t){
             return [t, node.getAttribute(attrname(t))];
           })))
         }, fmts) : delta;
@@ -450,7 +462,7 @@ ref$.create = function(opt){
         : oldIndex < newIndex ? delta.insert({
           'image-plus': import$({
             transient: true
-          }, Object.fromEntries(['src', 'key'].map(function(t){
+          }, Object.fromEntries(['key'].map(function(t){
             return [t, node.getAttribute(attrname(t))];
           })))
         }, fmts) : delta;
@@ -471,7 +483,7 @@ ref$.create = function(opt){
   return node;
 };
 ref$.value = function(n){
-  return Object.fromEntries(['src', 'key'].map(function(t){
+  return Object.fromEntries(['key'].map(function(t){
     return [t, n.getAttribute(attrname(t))];
   }));
 };
