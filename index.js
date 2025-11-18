@@ -158,7 +158,31 @@ resizer = function(){
     action = tgt.dataset.action;
     switch (action) {
     case 'src':
-      break;
+      if (!(blot = Quill.find(this$._.tgt.node))) {
+        return;
+      }
+      quill = this$._.editor;
+      index = quill.getIndex(blot);
+      return quill.emitter.emit('image-plus-request-source', {
+        blot: blot,
+        index: index,
+        node: this$._.tgt.node,
+        currentSrc: getfmt({
+          node: this$._.tgt.node,
+          name: 'src'
+        }),
+        setSrc: function(arg$){
+          var src;
+          src = (arg$ != null
+            ? arg$
+            : {}).src;
+          if (src) {
+            return quill.formatText(index, 1, {
+              src: src
+            });
+          }
+        }
+      });
     case 'fit':
       if (!(blot = Quill.find(this$._.tgt.node))) {
         return;
