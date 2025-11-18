@@ -332,43 +332,30 @@ ref$.create = function(opt){
   ref$.background = "url(" + opt.src + ")";
   ref$.backgroundColor = 'rgba(0,0,0,.8)';
   ref$.backgroundPosition = 'center center';
-  setfmt({
-    node: node,
-    name: 'fit',
-    value: opt.fit
-  });
-  setfmt({
-    node: node,
-    name: 'repeat',
-    value: opt.repeat
-  });
-  setfmt({
-    node: node,
-    name: 'mode',
-    value: opt.mode
-  });
   node.setAttribute('alt', opt.alt || '');
   node.setAttribute('data-qip-key', key = opt.key || "quill-image-plus-" + Math.random().toString(36).substring(2));
   lc.img = {
     ref: null,
-    loading: true,
-    auto: !(opt.width && opt.height)
+    loading: true
   };
   lc.promise = new Promise(function(res, rej){
     var img;
     lc.img.ref = img = new Image();
     img.onload = function(){
-      var ref$;
+      var ref$, w, h;
       lc.img.loading = false;
       ref$ = lc.img;
       ref$.width = img.naturalWidth;
       ref$.height = img.naturalHeight;
-      if (lc.img.auto) {
+      ref$ = [node.getAttribute('width'), node.getAttribute('height')], w = ref$[0], h = ref$[1];
+      if (w == null) {
         setfmt({
           node: node,
           name: 'width',
           value: lc.img.width
         });
+      }
+      if (h == null) {
         return setfmt({
           node: node,
           name: 'height',
@@ -381,32 +368,6 @@ ref$.create = function(opt){
     };
     return img.src = opt.src;
   });
-  if (!opt.width) {
-    opt.width = 200;
-  }
-  if (!opt.height) {
-    opt.height = 200;
-  }
-  if (opt.width) {
-    node.setAttribute('width', opt.width);
-  }
-  if (opt.height) {
-    node.setAttribute('height', opt.height);
-  }
-  if (opt.width) {
-    setfmt({
-      node: node,
-      name: 'width',
-      value: opt.width
-    });
-  }
-  if (opt.width) {
-    setfmt({
-      node: node,
-      name: 'height',
-      value: opt.height
-    });
-  }
   window.addEventListener('mouseup', function(){
     return imagePlusBlot.resizer.unbind();
   });

@@ -196,33 +196,21 @@ image-plus-blot <<< Embed <<<
       background: "url(#{opt.src})"
       backgroundColor: 'rgba(0,0,0,.8)'
       backgroundPosition: 'center center'
-    setfmt {node, name: \fit, value: opt.fit}
-    setfmt {node, name: \repeat, value: opt.repeat}
-    setfmt {node, name: \mode, value: opt.mode}
-
     node.setAttribute \alt, (opt.alt or '')
     node.setAttribute \data-qip-key, key = (opt.key or "quill-image-plus-#{Math.random!toString(36)substring(2)}")
     lc.img =
       ref: null
       loading: true
-      auto: !(opt.width and opt.height)
     lc.promise = new Promise (res, rej) ->
       lc.img.ref = img = new Image!
       img.onload = ->
         lc.img.loading = false
         lc.img <<< {width: img.naturalWidth, height: img.naturalHeight}
-        if lc.img.auto =>
-          setfmt {node, name: \width, value: lc.img.width}
-          setfmt {node, name: \height, value: lc.img.height}
+        [w,h] = [node.getAttribute(\width), node.getAttribute(\height)]
+        if !w? => setfmt {node, name: \width, value: lc.img.width}
+        if !h? => setfmt {node, name: \height, value: lc.img.height}
       img.onerror = -> lc.img.loading = false
       img.src = opt.src
-
-    if !opt.width => opt.width = 200
-    if !opt.height => opt.height = 200
-    if opt.width => node.setAttribute \width, opt.width
-    if opt.height => node.setAttribute \height, opt.height
-    if opt.width => setfmt {node, name: \width, value: opt.width}
-    if opt.width => setfmt {node, name: \height, value: opt.height}
     window.addEventListener \mouseup, -> image-plus-blot.resizer.unbind!
     node.setAttribute \draggable, false
     node.addEventListener \mouseup, (evt) -> evt.stopPropagation!
