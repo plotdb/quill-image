@@ -15,5 +15,6 @@ editor = new Quill view.get(\editor), do
             width: \100%
             height: \120px
             fit: \cover
+          opt = src: '/assets/img/sample.jpg', mode: \free
           editor.insertEmbed range.index, 'image-plus', opt, 'user'
           editor.setSelection range.index + 1

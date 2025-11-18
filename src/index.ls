@@ -87,12 +87,8 @@ resizer = ->
       blot = Quill.find(n)
       index = @_.editor.get-index(blot)
       @_.editor.formatText index, 1, @_.preview-pos{width, height}
-      @_.editor.updateContents({
-        ops: [
-          {retain: index},
-          {retain: 1, attributes: @_.preview-pos{width, height}}
-        ]
-      })
+      # alternative
+      # @_.editor.updateContents ops: [{retain: index}, {retain: 1, attributes: @_.preview-pos{width, height}}]
       return @bind {node: n, key: @_.tgt?key}
     [x, y, dir, free] = [evt.clientX, evt.clientY, @_.dir, evt.altKey]
     [dx, dy] = [x - @_.x, y - @_.y]

@@ -148,19 +148,6 @@ resizer = function(){
         width: (ref1$ = this$._.previewPos).width,
         height: ref1$.height
       });
-      this$._.editor.updateContents({
-        ops: [
-          {
-            retain: index
-          }, {
-            retain: 1,
-            attributes: {
-              width: (ref1$ = this$._.previewPos).width,
-              height: ref1$.height
-            }
-          }
-        ]
-      });
       return this$.bind({
         node: n,
         key: (ref1$ = this$._.tgt) != null ? ref1$.key : void 8
