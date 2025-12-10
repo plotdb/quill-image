@@ -130,7 +130,7 @@ pollpos = {
     if (box.x !== b.x || box.y !== b.y || box.width !== b.width || box.height !== b.height) {
       this._.cb();
     }
-    this._.box = b;
+    this._.box = box;
     return requestAnimationFrame(function(){
       return this$.tick();
     });

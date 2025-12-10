@@ -53,7 +53,7 @@ pollpos =
     if !(n = @_.node) => return
     [b, box] = [@_{}box, n.getBoundingClientRect!]
     if box.x != b.x or box.y != b.y or box.width != b.width or box.height != b.height => @_.cb!
-    @_.box = b
+    @_.box = box
     requestAnimationFrame (~>@tick!)
 
 image-plus-blot = -> Reflect.construct Embed, arguments, image-plus-blot
