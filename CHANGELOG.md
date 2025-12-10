@@ -1,5 +1,11 @@
 # Change Logs
 
+## v0.0.6 (upcoming)
+
+ - add stretch and reset action
+ - observe bounding box change to update widget size
+
+
 ## v0.0.5
 
  - support src update event
