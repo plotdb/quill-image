@@ -6,6 +6,7 @@ getfmt = ({node, name}) ->
   if name in <[width height mode alt src]> => return node.getAttribute(attrname name) or ''
   s = node.style
   if name == \fit => return if (v = s.backgroundSize) == "100% 100%" or v == \initial or !v => \fill else v
+  if name == \position => return s.backgroundPosition or '50% 50%'
   if name == \repeat => return s.backgroundRepeat or 'no-repeat'
 
 setfmt = ({node, name: n, value: v}) ->
@@ -15,6 +16,7 @@ setfmt = ({node, name: n, value: v}) ->
     else node.removeAttribute attrname(n)
   else if n in <[fit]> => node.style.backgroundSize = fit2size v
   else if n in <[repeat]> => node.style.backgroundRepeat = v or 'no-repeat'
+  else if n in <[position]> => node.style.backgroundPosition = v or '50% 50%'
   else if n in <[src]> =>
     lc = node._
     lc.img =
@@ -93,6 +95,7 @@ resizer = ->
   @_.dom.button.innerHTML = """
   <div data-action="src"><svg xmlns="http://www.w3.org/2000/svg" width="12px" viewBox="0 0 1200 1200"><path d="M1099.8 345.4v-.4a49.8 49.8 0 0 0-9.4-24.6c-.1 0-.2 0-.2-.2l-1.2-1.5-.4-.4-1.2-1.4-.4-.5a50 50 0 0 0-1.6-1.8l-300-300-1.8-1.6-.5-.4-1.4-1.2-.4-.4-1.5-1.2c-.1 0-.2 0-.3-.2l-1.8-1.2A49.7 49.7 0 0 0 755 .2h-.4A50.3 50.3 0 0 0 750 0H150a50 50 0 0 0-50 50v1100a50 50 0 0 0 50 50h900a50 50 0 0 0 50-50V350a49.7 49.7 0 0 0-.2-4.6zM800 170.7 929.3 300H800V170.7zM200 1100V100h500v250a50 50 0 0 0 50 50h250v700H200z"/></svg></div>
   <div data-action="fit"><svg xmlns="http://www.w3.org/2000/svg" width="12px" viewBox="0 0 1200 1200"><path d="M1100 50H100a50 50 0 0 0-50 50v1000a50 50 0 0 0 50 50h1000a50 50 0 0 0 50-50V100a50 50 0 0 0-50-50zm-50 1000H150V150h900v900zM350 900h500a50 50 0 0 0 50-50V350a50 50 0 0 0-50-50H350a50 50 0 0 0-50 50v500a50 50 0 0 0 50 50zm50-500h400v400H400V400z"/></svg></div>
+  <div data-action="align">⌖</div>
   <div data-action="stretch">↔</div>
   <div data-action="reset">Reset</div>
   """
@@ -132,6 +135,10 @@ resizer = ->
       {width, height} = (n?_?img or {})
       quill.formatText index, 1, {width, height}
       @bind @_.tgt
+    | \align =>
+      if !(blot = Quill.find @_.tgt.node) => return
+      @_.aligning = true
+      @_.tgt.node.style.cursor = \crosshair
 
   move-handler = (evt) ~>
     evt.stopPropagation!
@@ -259,7 +266,7 @@ image-plus-blot <<< Embed <<<
     node.setAttribute \src, "data:image/gif;base64,R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs="
     node.style <<<
       backgroundColor: 'rgba(0,0,0,.8)'
-      backgroundPosition: 'center center'
+      backgroundPosition: '50% 50%'
       backgroundSize: '100% 100%' # default value since if no fit in formats it won't be set
       backgroundRepeat: \no-repeat # default value since if no repeat in formats it won't be set
     node.setAttribute \data-qip-key, key = (opt.key or "quill-image-plus-#{Math.random!toString(36)substring(2)}")
@@ -267,6 +274,27 @@ image-plus-blot <<< Embed <<<
     window.addEventListener \mouseup, -> image-plus-blot.resizer.unbind!
     node.setAttribute \draggable, false
     node.addEventListener \mouseup, (evt) -> evt.stopPropagation!
+
+    alignment = ({evt, stop}) ~>
+      if !(blot = Quill.find node) => return
+      if !(resizer = image-plus-blot.resizer)._.aligning => return {}
+      box = node.getBoundingClientRect!
+      [dx, dy] = [
+        (evt.clientX - box.x) / box.width,
+        (evt.clientY - box.y) / box.height
+      ].map (-> (100 * it).toFixed(2) + "%")
+      position = "#dx #dy"
+      quill = Quill.find node.closest('.ql-editor').parentElement
+      index = quill.getIndex blot
+      quill.formatText index, 1, {position}
+      if !stop => return
+      resizer._.aligning = false
+      node.style.cursor = ''
+      resizer.bind {node, key, evt}
+
+    node.addEventListener \click, (evt) ~> alignment {evt, stop: true}
+    node.addEventListener \mousemove, (evt) ~> alignment {evt}
+
     node.addEventListener \mousedown, (evt) ->
       image-plus-blot.resizer.bind {node, key, evt}
       move-handler = (evt) ~>
@@ -322,6 +350,6 @@ image-plus-blot <<< Embed <<<
     return node
   value: (n) -> Object.fromEntries( <[key]> .map (t) -> [t, n.getAttribute attrname t])
   formats: (node) ->
-    Object.fromEntries <[width height mode fit repeat alt src]>.map (name) -> [name, getfmt {node, name}]
+    Object.fromEntries <[width height mode fit repeat alt src position]>.map (name) -> [name, getfmt {node, name}]
 
 Quill.register image-plus-blot

@@ -4,6 +4,7 @@
 
  - add stretch and reset action
  - observe bounding box change to update widget size
+ - support alignment point
 
 
 ## v0.0.5
