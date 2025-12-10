@@ -129,6 +129,10 @@ resizer = ->
       n = @_.editor.container.querySelector("[data-qip-key='#{@_.tgt?key}']")
       blot = Quill.find(n)
       index = @_.editor.get-index(blot)
+      # if user drags over container width then 100% is probably expected.
+      if @_.tgt?node and parent = @_.tgt.node.parentNode =>
+        pbox = parent.getBoundingClientRect!
+        if @_.preview-pos.width >= pbox.width => @_.preview-pos.width = "100%"
       @_.editor.formatText index, 1, @_.preview-pos{width, height}
       # alternative
       # @_.editor.updateContents ops: [{retain: index}, {retain: 1, attributes: @_.preview-pos{width, height}}]

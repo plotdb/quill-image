@@ -212,7 +212,7 @@ resizer = function(){
     }
   });
   moveHandler = function(evt){
-    var n, ref$, blot, index, ref1$, ref2$, x, y, dir, free, dx, dy, w, h, width, height;
+    var n, ref$, blot, index, ref1$, parent, pbox, ref2$, ref3$, x, y, dir, free, dx, dy, w, h, width, height;
     evt.stopPropagation();
     if (!this$._.start || !evt.buttons) {
       window.removeEventListener('mousemove', moveHandler);
@@ -224,18 +224,24 @@ resizer = function(){
       n = this$._.editor.container.querySelector("[data-qip-key='" + ((ref$ = this$._.tgt) != null ? ref$.key : void 8) + "']");
       blot = Quill.find(n);
       index = this$._.editor.getIndex(blot);
+      if (((ref1$ = this$._.tgt) != null && ref1$.node) && (parent = this$._.tgt.node.parentNode)) {
+        pbox = parent.getBoundingClientRect();
+        if (this$._.previewPos.width >= pbox.width) {
+          this$._.previewPos.width = "100%";
+        }
+      }
       this$._.editor.formatText(index, 1, {
-        width: (ref1$ = this$._.previewPos).width,
-        height: ref1$.height
+        width: (ref2$ = this$._.previewPos).width,
+        height: ref2$.height
       });
       return this$.bind({
         node: n,
-        key: (ref1$ = this$._.tgt) != null ? ref1$.key : void 8
+        key: (ref2$ = this$._.tgt) != null ? ref2$.key : void 8
       });
     }
-    ref2$ = [evt.clientX, evt.clientY, this$._.dir, evt.altKey], x = ref2$[0], y = ref2$[1], dir = ref2$[2], free = ref2$[3];
-    ref2$ = [x - this$._.x, y - this$._.y], dx = ref2$[0], dy = ref2$[1];
-    ref2$ = [this$._.pos.width, this$._.pos.height], w = ref2$[0], h = ref2$[1];
+    ref3$ = [evt.clientX, evt.clientY, this$._.dir, evt.altKey], x = ref3$[0], y = ref3$[1], dir = ref3$[2], free = ref3$[3];
+    ref3$ = [x - this$._.x, y - this$._.y], dx = ref3$[0], dy = ref3$[1];
+    ref3$ = [this$._.pos.width, this$._.pos.height], w = ref3$[0], h = ref3$[1];
     if (/n/.exec(dir)) {
       dy = -dy;
     }
@@ -246,22 +252,22 @@ resizer = function(){
       if (!this$._.resizeBasedAxis) {
         this$._.resizeBasedAxis = Math.abs(dx) > Math.abs(dy) ? 'x' : 'y';
       }
-      ref2$ = this$._.resizeBasedAxis === 'x'
+      ref3$ = this$._.resizeBasedAxis === 'x'
         ? [dx, dx * h / w]
-        : [dy * w / h, dy], dx = ref2$[0], dy = ref2$[1];
+        : [dy * w / h, dy], dx = ref3$[0], dy = ref3$[1];
     }
-    ref2$ = this$._.pos, x = ref2$.x, y = ref2$.y, width = ref2$.width, height = ref2$.height;
+    ref3$ = this$._.pos, x = ref3$.x, y = ref3$.y, width = ref3$.width, height = ref3$.height;
     if (/n/.exec(dir)) {
-      ref2$ = [this$._.pos.y - dy, this$._.pos.height + dy], y = ref2$[0], height = ref2$[1];
+      ref3$ = [this$._.pos.y - dy, this$._.pos.height + dy], y = ref3$[0], height = ref3$[1];
     }
     if (/s/.exec(dir)) {
-      ref2$ = [this$._.pos.y, this$._.pos.height + dy], y = ref2$[0], height = ref2$[1];
+      ref3$ = [this$._.pos.y, this$._.pos.height + dy], y = ref3$[0], height = ref3$[1];
     }
     if (/w/.exec(dir)) {
-      ref2$ = [this$._.pos.x - dx, this$._.pos.width + dx], x = ref2$[0], width = ref2$[1];
+      ref3$ = [this$._.pos.x - dx, this$._.pos.width + dx], x = ref3$[0], width = ref3$[1];
     }
     if (/e/.exec(dir)) {
-      ref2$ = [this$._.pos.x, this$._.pos.width + dx], x = ref2$[0], width = ref2$[1];
+      ref3$ = [this$._.pos.x, this$._.pos.width + dx], x = ref3$[0], width = ref3$[1];
     }
     return this$.repos({
       x: x,
@@ -270,7 +276,7 @@ resizer = function(){
       height: height,
       preview: true,
       mode: getfmt({
-        node: (ref2$ = this$._.tgt) != null ? ref2$.node : void 8,
+        node: (ref3$ = this$._.tgt) != null ? ref3$.node : void 8,
         name: 'mode'
       })
     });
