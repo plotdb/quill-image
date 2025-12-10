@@ -168,7 +168,9 @@ resizer.prototype = Object.create(Object.prototype) <<<
     rbox = container.getBoundingClientRect!
     [x, y] = [box.x - rbox.x, box.y - rbox.y]
     @_.dom.caret.style <<< left: "#{x}px", top: "#{y}px"
-  unbind: -> @_.dom.base.style.display = \none
+  unbind: ->
+    @_.dom.base.style.display = \none
+    if @_.ro => @_.ro.unobserve @_.tgt.node
   bind: ({node, key, evt}) ->
     @_.dom.base.style.display = \block
     @_.tgt = {key, node}
@@ -176,9 +178,11 @@ resizer.prototype = Object.create(Object.prototype) <<<
       container = evt.target.closest('.ql-container')
       @_.editor = quill = Quill.find evt.target.closest('.ql-editor').parentElement
       @_.editor.on \text-change, ~> @unbind!
+      @_.ro = new ResizeObserver ~> @bind {node, key, evt}
     else
       quill = @_.editor
       container = quill.container
+    @_.ro.observe node
     if @_.dom.base.parentNode => @_.dom.base.parentNode.removeChild @_.dom.base
     container.appendChild @_.dom.base
     rbox = container.getBoundingClientRect!

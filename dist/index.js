@@ -311,7 +311,10 @@ resizer.prototype = (ref$ = Object.create(Object.prototype), ref$.dismissCaret =
   ref$ = [box.x - rbox.x, box.y - rbox.y], x = ref$[0], y = ref$[1];
   return ref$ = this._.dom.caret.style, ref$.left = x + "px", ref$.top = y + "px", ref$;
 }, ref$.unbind = function(){
-  return this._.dom.base.style.display = 'none';
+  this._.dom.base.style.display = 'none';
+  if (this._.ro) {
+    return this._.ro.unobserve(this._.tgt.node);
+  }
 }, ref$.bind = function(arg$){
   var node, key, evt, container, quill, rbox, box, ref$, x, y, width, height, this$ = this;
   node = arg$.node, key = arg$.key, evt = arg$.evt;
@@ -326,10 +329,18 @@ resizer.prototype = (ref$ = Object.create(Object.prototype), ref$.dismissCaret =
     this._.editor.on('text-change', function(){
       return this$.unbind();
     });
+    this._.ro = new ResizeObserver(function(){
+      return this$.bind({
+        node: node,
+        key: key,
+        evt: evt
+      });
+    });
   } else {
     quill = this._.editor;
     container = quill.container;
   }
+  this._.ro.observe(node);
   if (this._.dom.base.parentNode) {
     this._.dom.base.parentNode.removeChild(this._.dom.base);
   }
