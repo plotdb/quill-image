@@ -42,6 +42,20 @@ setfmt = ({node, name: n, value: v}) ->
   # TODO this causes exception. not sure if we do need it or we can remove?
   #else Embed.call @, n, v
 
+pollpos =
+  _: {}
+  bind: ({node, cb}) ->
+    init = !@_.node
+    @_ <<< {node, cb}
+    if init => requestAnimationFrame (~>@tick!)
+  unbind: -> @_.node = null
+  tick: ->
+    if !(n = @_.node) => return
+    [b, box] = [@_{}box, n.getBoundingClientRect!]
+    if box.x != b.x or box.y != b.y or box.width != b.width or box.height != b.height => @_.cb!
+    @_.box = b
+    requestAnimationFrame (~>@tick!)
+
 image-plus-blot = -> Reflect.construct Embed, arguments, image-plus-blot
 image-plus-blot.prototype = Object.create Embed.prototype
 image-plus-blot.prototype.constructor = image-plus-blot
@@ -122,6 +136,8 @@ resizer = ->
   move-handler = (evt) ~>
     evt.stopPropagation!
     if !@_.start or !evt.buttons =>
+      @_.start = false
+      if !evt.buttons => @_.resizing = false
       window.removeEventListener \mousemove, move-handler
       window.removeEventListener \mouseup, move-handler
       document.body.classList.toggle \quill-image-plus-select-suppress, false
@@ -157,7 +173,7 @@ resizer = ->
   @_.dom.base.addEventListener \mousedown, (evt) ~>
     dir = <[nw ne se sw n s w e]>.filter((t) ~> @_.dom[t] == evt.target).0
     if !dir => return
-    @_.start = true
+    @_ <<< start: true, resizing: true
     @_ <<< {x: evt.clientX, y: evt.clientY, dir, resize-based-axis: null}
     document.body.classList.toggle \quill-image-plus-select-suppress, true
     window.addEventListener \mousemove, move-handler
@@ -181,7 +197,7 @@ resizer.prototype = Object.create(Object.prototype) <<<
     @_.dom.caret.style <<< left: "#{x}px", top: "#{y}px"
   unbind: ->
     @_.dom.base.style.display = \none
-    if @_.ro => @_.ro.unobserve @_.tgt.node
+    pollpos.unbind!
   bind: ({node, key, evt} = {}) ->
     @_.dom.base.style.display = \block
     @_.tgt = {key, node}
@@ -189,11 +205,10 @@ resizer.prototype = Object.create(Object.prototype) <<<
       container = evt.target.closest('.ql-container')
       @_.editor = quill = Quill.find evt.target.closest('.ql-editor').parentElement
       @_.editor.on \text-change, ~> @unbind!
-      @_.ro = new ResizeObserver ~> @bind {node, key, evt}
     else
       quill = @_.editor
       container = quill.container
-    @_.ro.observe node
+    pollpos.bind {node, cb: ~> if !@_.resizing => @bind {node, key, evt}}
     if @_.dom.base.parentNode => @_.dom.base.parentNode.removeChild @_.dom.base
     container.appendChild @_.dom.base
     rbox = container.getBoundingClientRect!
