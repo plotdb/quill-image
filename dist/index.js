@@ -142,7 +142,7 @@ resizer = function(){
   this._.dom.button = n = document.createElement('div');
   this._.dom.base.appendChild(n);
   n.classList.add('quill-image-plus-button');
-  this._.dom.button.innerHTML = "<div data-action=\"src\"><svg xmlns=\"http://www.w3.org/2000/svg\" width=\"12px\" viewBox=\"0 0 1200 1200\"><path d=\"M1099.8 345.4v-.4a49.8 49.8 0 0 0-9.4-24.6c-.1 0-.2 0-.2-.2l-1.2-1.5-.4-.4-1.2-1.4-.4-.5a50 50 0 0 0-1.6-1.8l-300-300-1.8-1.6-.5-.4-1.4-1.2-.4-.4-1.5-1.2c-.1 0-.2 0-.3-.2l-1.8-1.2A49.7 49.7 0 0 0 755 .2h-.4A50.3 50.3 0 0 0 750 0H150a50 50 0 0 0-50 50v1100a50 50 0 0 0 50 50h900a50 50 0 0 0 50-50V350a49.7 49.7 0 0 0-.2-4.6zM800 170.7 929.3 300H800V170.7zM200 1100V100h500v250a50 50 0 0 0 50 50h250v700H200z\"/></svg></div>\n<div data-action=\"fit\"><svg xmlns=\"http://www.w3.org/2000/svg\" width=\"12px\" viewBox=\"0 0 1200 1200\"><path d=\"M1100 50H100a50 50 0 0 0-50 50v1000a50 50 0 0 0 50 50h1000a50 50 0 0 0 50-50V100a50 50 0 0 0-50-50zm-50 1000H150V150h900v900zM350 900h500a50 50 0 0 0 50-50V350a50 50 0 0 0-50-50H350a50 50 0 0 0-50 50v500a50 50 0 0 0 50 50zm50-500h400v400H400V400z\"/></svg></div>";
+  this._.dom.button.innerHTML = "<div data-action=\"src\"><svg xmlns=\"http://www.w3.org/2000/svg\" width=\"12px\" viewBox=\"0 0 1200 1200\"><path d=\"M1099.8 345.4v-.4a49.8 49.8 0 0 0-9.4-24.6c-.1 0-.2 0-.2-.2l-1.2-1.5-.4-.4-1.2-1.4-.4-.5a50 50 0 0 0-1.6-1.8l-300-300-1.8-1.6-.5-.4-1.4-1.2-.4-.4-1.5-1.2c-.1 0-.2 0-.3-.2l-1.8-1.2A49.7 49.7 0 0 0 755 .2h-.4A50.3 50.3 0 0 0 750 0H150a50 50 0 0 0-50 50v1100a50 50 0 0 0 50 50h900a50 50 0 0 0 50-50V350a49.7 49.7 0 0 0-.2-4.6zM800 170.7 929.3 300H800V170.7zM200 1100V100h500v250a50 50 0 0 0 50 50h250v700H200z\"/></svg></div>\n<div data-action=\"fit\"><svg xmlns=\"http://www.w3.org/2000/svg\" width=\"12px\" viewBox=\"0 0 1200 1200\"><path d=\"M1100 50H100a50 50 0 0 0-50 50v1000a50 50 0 0 0 50 50h1000a50 50 0 0 0 50-50V100a50 50 0 0 0-50-50zm-50 1000H150V150h900v900zM350 900h500a50 50 0 0 0 50-50V350a50 50 0 0 0-50-50H350a50 50 0 0 0-50 50v500a50 50 0 0 0 50 50zm50-500h400v400H400V400z\"/></svg></div>\n<div data-action=\"stretch\">↔</div>\n<div data-action=\"reset\">Reset</div>";
   this._.dom.button.addEventListener('mousedown', function(evt){
     return evt.stopPropagation();
   });
@@ -150,19 +150,19 @@ resizer = function(){
     return evt.stopPropagation();
   });
   this._.dom.button.addEventListener('click', function(evt){
-    var tgt, action, blot, quill, index, f, cur, cycle, i, next, ref$;
+    var tgt, action, blot, quill, index, f, cur, cycle, i, next, ref$, n, ref1$, width, height;
     evt.stopPropagation();
     if (!(tgt = evt.target.closest('.quill-image-plus-button > div[data-action]'))) {
       return;
     }
     action = tgt.dataset.action;
+    if (!(blot = Quill.find(this$._.tgt.node))) {
+      return;
+    }
+    quill = this$._.editor;
+    index = quill.getIndex(blot);
     switch (action) {
     case 'src':
-      if (!(blot = Quill.find(this$._.tgt.node))) {
-        return;
-      }
-      quill = this$._.editor;
-      index = quill.getIndex(blot);
       return quill.emitter.emit('image-plus-request-source', {
         blot: blot,
         index: index,
@@ -184,11 +184,6 @@ resizer = function(){
         }
       });
     case 'fit':
-      if (!(blot = Quill.find(this$._.tgt.node))) {
-        return;
-      }
-      quill = this$._.editor;
-      index = quill.getIndex(blot);
       f = quill.getFormat(index, 1);
       cur = f.fit || 'fill';
       cycle = ['fill', 'cover', 'contain'];
@@ -201,6 +196,19 @@ resizer = function(){
         node: (ref$ = this$._.tgt).node,
         key: ref$.key
       });
+    case 'stretch':
+      quill.formatText(index, 1, {
+        width: '100%'
+      });
+      return this$.bind(this$._.tgt);
+    case 'reset':
+      n = this$._.tgt.node;
+      ref1$ = (n != null ? (ref$ = n._) != null ? ref$.img : void 8 : void 8) || {}, width = ref1$.width, height = ref1$.height;
+      quill.formatText(index, 1, {
+        width: width,
+        height: height
+      });
+      return this$.bind(this$._.tgt);
     }
   });
   moveHandler = function(evt){
@@ -316,8 +324,10 @@ resizer.prototype = (ref$ = Object.create(Object.prototype), ref$.dismissCaret =
     return this._.ro.unobserve(this._.tgt.node);
   }
 }, ref$.bind = function(arg$){
-  var node, key, evt, container, quill, rbox, box, ref$, x, y, width, height, this$ = this;
-  node = arg$.node, key = arg$.key, evt = arg$.evt;
+  var ref$, node, key, evt, container, quill, rbox, box, x, y, width, height, this$ = this;
+  ref$ = arg$ != null
+    ? arg$
+    : {}, node = ref$.node, key = ref$.key, evt = ref$.evt;
   this._.dom.base.style.display = 'block';
   this._.tgt = {
     key: key,
