@@ -1,5 +1,14 @@
 # Change Logs
 
+## v0.0.6
+
+ - add stretch and reset action
+ - polling bounding box change to update resizer size
+ - support alignment point assignment. toggled baed on fit mode
+ - fallback to 100% width if user resize out of container width
+ - use separated button for fit mode switching
+
+
 ## v0.0.5
 
  - support src update event
