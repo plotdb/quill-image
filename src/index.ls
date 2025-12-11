@@ -94,7 +94,9 @@ resizer = ->
 
   @_.dom.button.innerHTML = """
   <div data-action="src"><svg xmlns="http://www.w3.org/2000/svg" width="12px" viewBox="0 0 1200 1200"><path d="M1099.8 345.4v-.4a49.8 49.8 0 0 0-9.4-24.6c-.1 0-.2 0-.2-.2l-1.2-1.5-.4-.4-1.2-1.4-.4-.5a50 50 0 0 0-1.6-1.8l-300-300-1.8-1.6-.5-.4-1.4-1.2-.4-.4-1.5-1.2c-.1 0-.2 0-.3-.2l-1.8-1.2A49.7 49.7 0 0 0 755 .2h-.4A50.3 50.3 0 0 0 750 0H150a50 50 0 0 0-50 50v1100a50 50 0 0 0 50 50h900a50 50 0 0 0 50-50V350a49.7 49.7 0 0 0-.2-4.6zM800 170.7 929.3 300H800V170.7zM200 1100V100h500v250a50 50 0 0 0 50 50h250v700H200z"/></svg></div>
-  <div data-action="fit"><svg xmlns="http://www.w3.org/2000/svg" width="12px" viewBox="0 0 1200 1200"><path d="M1100 50H100a50 50 0 0 0-50 50v1000a50 50 0 0 0 50 50h1000a50 50 0 0 0 50-50V100a50 50 0 0 0-50-50zm-50 1000H150V150h900v900zM350 900h500a50 50 0 0 0 50-50V350a50 50 0 0 0-50-50H350a50 50 0 0 0-50 50v500a50 50 0 0 0 50 50zm50-500h400v400H400V400z"/></svg></div>
+  <div data-action="fit" data-name="fill">⛶</div>
+  <div data-action="fit" data-name="cover">⌼</div>
+  <div data-action="fit" data-name="contain">▣</div>
   <div data-action="align">⌖</div>
   <div data-action="stretch">↔</div>
   <div data-action="reset">Reset</div>
@@ -120,12 +122,14 @@ resizer = ->
         setSrc: ({src} = {}) ~> if src => quill.formatText index, 1, {src}
       }
     | \fit =>
+      name = tgt.dataset.name
       f = quill.getFormat index, 1
       cur = f.fit or \fill
       cycle = <[fill cover contain]>
       i = cycle.indexOf cur
-      next = cycle[(i + 1) % cycle.length]
+      next = name or cycle[(i + 1) % cycle.length]
       quill.formatText index, 1, {fit: next}
+      @render!
       @bind @_.tgt{node, key}
     | \stretch =>
       quill.formatText index, 1, {width: \100%}
@@ -139,6 +143,7 @@ resizer = ->
       if !(blot = Quill.find @_.tgt.node) => return
       @_.aligning = true
       @_.tgt.node.style.cursor = \crosshair
+      @_.dom.base.classList.add \aligning
 
   move-handler = (evt) ~>
     evt.stopPropagation!
@@ -189,6 +194,11 @@ resizer = ->
 
 resizer.prototype = Object.create(Object.prototype) <<<
   dismiss-caret: -> if @_.dom.caret.parentNode => @_.dom.caret.parentNode.removeChild @_.dom.caret
+  render: ->
+    if !@_.tgt => return
+    node = @_.tgt.node
+    fit = getfmt {node, name: \fit}
+    @_.dom.base.classList.toggle \alignable, (fit in <[cover contain]>)
   caret: ({node, evt}) ->
     [x, y] = [evt.clientX, evt.clientY]
     container = node.closest('.ql-container')
@@ -221,6 +231,7 @@ resizer.prototype = Object.create(Object.prototype) <<<
     rbox = container.getBoundingClientRect!
     box = node.getBoundingClientRect!
     [x, y, width, height] = [box.x - rbox.x, box.y - rbox.y, box.width ,box.height]
+    @render!
     @repos {x, y, width, height, mode: getfmt({node, name: \mode})}
   repos: ({x, y, width, height, preview, mode = \free}) ->
     if width < 0 => [x,width] = [x + width, -width]
@@ -280,17 +291,18 @@ image-plus-blot <<< Embed <<<
       if !(resizer = image-plus-blot.resizer)._.aligning => return {}
       box = node.getBoundingClientRect!
       [dx, dy] = [
-        (evt.clientX - box.x) / box.width,
-        (evt.clientY - box.y) / box.height
+        ((evt.clientX - box.x - box.width * 0.1) / (box.width * 0.8)) >? 0 <? 1,
+        ((evt.clientY - box.y - box.height * 0.1) / (box.height * 0.8)) >? 0 <? 1
       ].map (-> (100 * it).toFixed(2) + "%")
       position = "#dx #dy"
       quill = Quill.find node.closest('.ql-editor').parentElement
       index = quill.getIndex blot
       quill.formatText index, 1, {position}
+      resizer.bind {node, key, evt}
       if !stop => return
       resizer._.aligning = false
       node.style.cursor = ''
-      resizer.bind {node, key, evt}
+      resizer._.dom.base.classList.remove \aligning
 
     node.addEventListener \click, (evt) ~> alignment {evt, stop: true}
     node.addEventListener \mousemove, (evt) ~> alignment {evt}
