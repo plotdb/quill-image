@@ -1,6 +1,6 @@
 # Change Logs
 
-## v0.0.6 (upcoming)
+## v0.0.6
 
  - add stretch and reset action
  - polling bounding box change to update resizer size
