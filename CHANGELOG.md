@@ -1,5 +1,10 @@
 # Change Logs
 
+## v0.0.7
+
+ - dismiss caret when unbinding so caret won't be visible if editor is reused
+
+
 ## v0.0.6
 
  - add stretch and reset action

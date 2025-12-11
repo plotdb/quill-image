@@ -214,6 +214,7 @@ resizer.prototype = Object.create(Object.prototype) <<<
     @_.dom.caret.style <<< left: "#{x}px", top: "#{y}px"
   unbind: ->
     @_.dom.base.style.display = \none
+    @dismiss-caret!
     pollpos.unbind!
   bind: ({node, key, evt} = {}) ->
     @_.dom.base.style.display = \block

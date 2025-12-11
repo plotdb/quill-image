@@ -390,6 +390,7 @@ resizer.prototype = (ref$ = Object.create(Object.prototype), ref$.dismissCaret =
   return ref$ = this._.dom.caret.style, ref$.left = x + "px", ref$.top = y + "px", ref$;
 }, ref$.unbind = function(){
   this._.dom.base.style.display = 'none';
+  this.dismissCaret();
   return pollpos.unbind();
 }, ref$.bind = function(arg$){
   var ref$, node, key, evt, container, quill, rbox, box, x, y, width, height, this$ = this;
